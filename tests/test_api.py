@@ -1,0 +1,105 @@
+"""Unit tests for grok.api — pure logic, no live HTTP."""
+
+from __future__ import annotations
+
+import os
+from unittest.mock import patch
+
+import pytest
+
+from grok.api import (
+    GrokAPIError,
+    _parse_envelope,
+    _require_api_key,
+    build_tool_spec,
+    format_citations_md,
+)
+
+
+def test_build_tool_spec_filters_none() -> None:
+    spec = build_tool_spec(
+        "x_search",
+        from_date="2026-05-28",
+        to_date=None,
+        enable_video_understanding=True,
+        irrelevant=None,
+    )
+    assert spec == {
+        "type": "x_search",
+        "from_date": "2026-05-28",
+        "enable_video_understanding": True,
+    }
+
+
+def test_build_tool_spec_empty() -> None:
+    assert build_tool_spec("web_search") == {"type": "web_search"}
+
+
+def test_parse_envelope_text_and_citations() -> None:
+    body = {
+        "output": [
+            {
+                "type": "message",
+                "content": [
+                    {
+                        "type": "output_text",
+                        "text": "Karpathy joined Anthropic 2026-05-19.",
+                        "annotations": [
+                            {
+                                "type": "url_citation",
+                                "url": "https://techcrunch.com/2026/05/19/karpathy",
+                                "title": "TechCrunch",
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    }
+    parsed = _parse_envelope(body)
+    assert parsed["text"] == "Karpathy joined Anthropic 2026-05-19."
+    assert parsed["citations"] == [
+        {"url": "https://techcrunch.com/2026/05/19/karpathy", "title": "TechCrunch"},
+    ]
+
+
+def test_parse_envelope_skips_non_message_items() -> None:
+    body = {
+        "output": [
+            {"type": "reasoning", "content": "ignored"},
+            {
+                "type": "message",
+                "content": [{"type": "output_text", "text": "kept"}],
+            },
+        ],
+    }
+    assert _parse_envelope(body)["text"] == "kept"
+
+
+def test_format_citations_md_dedups() -> None:
+    cites = [
+        {"url": "https://a.com", "title": "A"},
+        {"url": "https://a.com", "title": "A (dup)"},
+        {"url": "https://b.com", "title": "B"},
+    ]
+    md = format_citations_md(cites)
+    assert md.count("https://a.com") == 1
+    assert "https://b.com" in md
+    assert md.startswith("\n**Sources:**")
+
+
+def test_format_citations_md_empty() -> None:
+    assert format_citations_md([]) == ""
+
+
+def test_require_api_key_missing() -> None:
+    with patch.dict(os.environ, {}, clear=True):
+        with pytest.raises(GrokAPIError) as exc:
+            _require_api_key()
+        assert exc.value.status == 0
+        assert "XAI_API_KEY" in str(exc.value)
+
+
+def test_require_api_key_present() -> None:
+    with patch.dict(os.environ, {"XAI_API_KEY": "FAKE-FOR-TEST"}):
+        assert _require_api_key() == "FAKE-FOR-TEST"
