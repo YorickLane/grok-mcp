@@ -1,16 +1,19 @@
 """grok-mcp MCP server.
 
-v0.1 ships 3 tools: chat / search_x / search_web. See README roadmap for
-v0.2+ plans.
+v0.2 ships 5 tools: chat / search_x / search_web / run_code / generate_image.
+See README roadmap for v0.3+ plans.
 """
 
 from __future__ import annotations
 
 import sys
+from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
 from grok.tools.chat import chat as _chat
+from grok.tools.generate_image import generate_image as _generate_image
+from grok.tools.run_code import run_code as _run_code
 from grok.tools.search_web import search_web as _search_web
 from grok.tools.search_x import search_x as _search_x
 
@@ -119,6 +122,66 @@ def search_web(
         enable_image_understanding=enable_image_understanding,
         enable_image_search=enable_image_search,
         model=model,
+    )
+
+
+@mcp.tool()
+def run_code(
+    prompt: str,
+    model: str = "grok-4.3",
+) -> str:
+    """Execute Python via Grok's sandboxed code interpreter.
+
+    Use for problems where the LLM would otherwise hallucinate numbers:
+    compound interest, t-tests, regressions, Sharpe ratios, simulations.
+    The sandbox has NumPy / Pandas / Matplotlib / SciPy pre-installed but
+    no network and no persistent file I/O.
+
+    Args:
+        prompt: Plain-language description of what to compute. Include
+            data inline, not as a file.
+        model: Grok model ID. Default grok-4.3.
+
+    Returns:
+        Grok's text answer with numeric results and embedded reasoning.
+    """
+    return _run_code(prompt=prompt, model=model)
+
+
+@mcp.tool()
+def generate_image(
+    prompt: str,
+    model: str = "grok-imagine-image-quality",
+    n: int = 1,
+    aspect_ratio: str | None = None,
+    resolution: str | None = None,
+    response_format: str | None = None,
+) -> list[dict[str, Any]]:
+    """Generate images from text via Grok Imagine.
+
+    Default model is grok-imagine-image-quality (the -pro variant was
+    deprecated 2026-05-15). URLs returned are signed temporary; download
+    promptly or request response_format='b64_json' for embedded payload.
+
+    Args:
+        prompt: Text description of the image. Required.
+        model: Grok Imagine model. Default grok-imagine-image-quality.
+        n: Number of images (1-10, batch in one request).
+        aspect_ratio: One of 1:1 / 16:9 / 9:16 / 4:3 / 3:4 / 3:2 / 2:3 /
+            2:1 / 1:2 / 19.5:9 / 9:19.5 / 20:9 / 9:20 / auto.
+        resolution: 1k or 2k.
+        response_format: url (default, signed) or b64_json (embedded).
+
+    Returns:
+        List of dicts each containing url (or b64_json) and revised_prompt.
+    """
+    return _generate_image(
+        prompt=prompt,
+        model=model,
+        n=n,
+        aspect_ratio=aspect_ratio,
+        resolution=resolution,
+        response_format=response_format,
     )
 
 

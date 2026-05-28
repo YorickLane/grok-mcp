@@ -15,7 +15,9 @@ from typing import Any
 import httpx
 
 XAI_RESPONSES_URL = "https://api.x.ai/v1/responses"
+XAI_IMAGES_URL = "https://api.x.ai/v1/images/generations"
 DEFAULT_MODEL = "grok-4.3"
+DEFAULT_IMAGE_MODEL = "grok-imagine-image-quality"  # -pro deprecated 2026-05-15
 DEFAULT_TIMEOUT_S = 300.0
 
 
@@ -114,6 +116,57 @@ def _parse_envelope(body: dict[str, Any]) -> dict[str, Any]:
         "citations": citations,
         "raw": body,
     }
+
+
+def call_images_generations(
+    prompt: str,
+    *,
+    model: str = DEFAULT_IMAGE_MODEL,
+    n: int = 1,
+    aspect_ratio: str | None = None,
+    resolution: str | None = None,
+    response_format: str | None = None,
+    timeout_s: float = DEFAULT_TIMEOUT_S,
+) -> list[dict[str, Any]]:
+    """POST to xAI Images Generations API and return the parsed image list.
+
+    Returns a list of dicts with keys: ``url`` (signed temporary URL),
+    ``b64_json`` (only if ``response_format='b64_json'``), and
+    ``revised_prompt`` (model's interpreted prompt — useful for debugging
+    why an output diverged from intent).
+
+    Note this is the OpenAI-compat ``/v1/images/generations`` endpoint, not
+    the Responses API. Different request shape, different response shape.
+    """
+    api_key = _require_api_key()
+
+    payload: dict[str, Any] = {
+        "model": model,
+        "prompt": prompt,
+        "n": n,
+    }
+    if aspect_ratio is not None:
+        payload["aspect_ratio"] = aspect_ratio
+    if resolution is not None:
+        payload["resolution"] = resolution
+    if response_format is not None:
+        payload["response_format"] = response_format
+
+    with httpx.Client(timeout=timeout_s) as client:
+        resp = client.post(
+            XAI_IMAGES_URL,
+            json=payload,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}",
+            },
+        )
+
+    if resp.status_code >= 400:
+        raise GrokAPIError(resp.status_code, resp.text)
+
+    body = resp.json()
+    return list(body.get("data", []))
 
 
 def build_tool_spec(tool_type: str, **params: Any) -> dict[str, Any]:

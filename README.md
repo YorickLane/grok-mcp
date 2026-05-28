@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 [![MCP](https://img.shields.io/badge/MCP-stdio-green.svg)](https://modelcontextprotocol.io/)
-[![Status](https://img.shields.io/badge/status-v0.1.0%20early-orange.svg)](#roadmap)
+[![Status](https://img.shields.io/badge/status-v0.2.0%20early-orange.svg)](#roadmap)
 
 ## Why this exists
 
@@ -26,15 +26,17 @@ parameters xAI shipped weeks ago. Concrete example:
 
 This server's design rule: **if the xAI API exposes it, the MCP exposes it.**
 
-## What it ships (v0.1)
+## What it ships (v0.2)
 
-3 tools wired with the full xAI parameter surface as of 2026-05-28:
+5 tools wired with the full xAI parameter surface as of 2026-05-28:
 
 | Tool | Purpose | Cost-relevant params |
 |---|---|---|
 | `chat` | Plain chat with Grok — reasoning, codegen, translation | `model`, `system_prompt` |
 | `search_x` | X (Twitter) Live Search | `allowed/excluded_x_handles` (cap 20), date range, **`enable_image_understanding`**, **`enable_video_understanding`** |
 | `search_web` | Web Live Search | `allowed/excluded_domains` (cap 5), **`enable_image_understanding`**, **`enable_image_search`** (markdown embed) |
+| `run_code` | Grok code interpreter — math / stats / simulations | `model` |
+| `generate_image` | Grok Imagine text-to-image | `model`, `n`, `aspect_ratio` (13), `resolution` (1k/2k), `response_format` |
 
 The bolded params are the ones most community servers omit.
 
@@ -90,17 +92,17 @@ print(answer)
 
 ## Roadmap
 
-### v0.1 (current)
+### v0.1 — initial ship
 - [x] `chat`
 - [x] `search_x` — full param surface
 - [x] `search_web` — full param surface
 
-### v0.2 (planned)
-- [ ] `run_code` — Grok code interpreter
-- [ ] `generate_image` — `grok-imagine` family
-- [ ] Multi-turn chat with `session_id`
+### v0.2 (current)
+- [x] `run_code` — Grok code interpreter
+- [x] `generate_image` — `grok-imagine` family with full param surface
 
-### v0.3 (planned, lower priority)
+### v0.3 (planned)
+- [ ] Multi-turn chat with `session_id` (currently each `chat()` is single-turn)
 - [ ] `upload_file` + chat-with-files
 - [ ] `edit_image` / multi-image edit
 

@@ -4,6 +4,18 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-05-28
+
+### Added
+- `run_code` — Grok code interpreter via Responses API. Use for math /
+  stats / financial modeling / simulations where LLM arithmetic
+  hallucinates.
+- `generate_image` — Grok Imagine via OpenAI-compat `/v1/images/generations`
+  endpoint. Full param surface: `n`, `aspect_ratio` (13 options), `resolution`
+  (1k / 2k), `response_format` (url / b64_json). Default model
+  `grok-imagine-image-quality` (the `-pro` variant was deprecated 2026-05-15).
+- Tool count: 3 → 5. Tests: 14 → 21 (all passing, mocked).
+
 ## [0.1.0] — 2026-05-28
 
 ### Added

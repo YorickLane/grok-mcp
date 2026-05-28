@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from grok.tools.chat import chat
+from grok.tools.run_code import run_code
 from grok.tools.search_web import search_web
 from grok.tools.search_x import search_x
 
@@ -45,3 +46,8 @@ def test_search_web_mutually_exclusive_domains_raises() -> None:
             allowed_domains=["a.com"],
             excluded_domains=["b.com"],
         )
+
+
+def test_run_code_empty_prompt_raises() -> None:
+    with pytest.raises(ValueError, match="prompt cannot be empty"):
+        run_code("")
