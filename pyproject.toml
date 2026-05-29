@@ -1,6 +1,6 @@
 [project]
 name = "grok-mcp"
-version = "0.2.0"
+version = "0.3.0"
 description = "Lean MCP server for xAI Grok — full Live Search capability surface, modular architecture, explicit roadmap"
 readme = "README.md"
 requires-python = ">=3.11"

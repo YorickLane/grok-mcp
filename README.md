@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 [![MCP](https://img.shields.io/badge/MCP-stdio-green.svg)](https://modelcontextprotocol.io/)
-[![Status](https://img.shields.io/badge/status-v0.2.0%20early-orange.svg)](#roadmap)
+[![Status](https://img.shields.io/badge/status-v0.3.0%20early-orange.svg)](#roadmap)
 
 ## Why this exists
 
@@ -26,19 +26,27 @@ parameters xAI shipped weeks ago. Concrete example:
 
 This server's design rule: **if the xAI API exposes it, the MCP exposes it.**
 
-## What it ships (v0.2)
+## What it ships (v0.3)
 
-5 tools wired with the full xAI parameter surface as of 2026-05-28:
+5 tools wired with the full xAI parameter surface as of 2026-05-29:
 
-| Tool | Purpose | Cost-relevant params |
+| Tool | Purpose | Key params |
 |---|---|---|
-| `chat` | Plain chat with Grok — reasoning, codegen, translation | `model`, `system_prompt` |
-| `search_x` | X (Twitter) Live Search | `allowed/excluded_x_handles` (cap 20), date range, **`enable_image_understanding`**, **`enable_video_understanding`** |
-| `search_web` | Web Live Search | `allowed/excluded_domains` (cap 5), **`enable_image_understanding`**, **`enable_image_search`** (markdown embed) |
+| `chat` | Plain chat with Grok — reasoning, codegen, translation | `model`, `system_prompt`, **`reasoning_effort`**, **`response_format`** (JSON Schema), **`max_turns`**, **`conv_id`** (caching) |
+| `search_x` | X (Twitter) Live Search | `allowed/excluded_x_handles` (cap 20), date range, **`enable_image_understanding`**, **`enable_video_understanding`**, `max_turns`, `conv_id` |
+| `search_web` | Web Live Search | `allowed/excluded_domains` (cap 5), **`enable_image_understanding`**, **`enable_image_search`** (markdown embed), `max_turns`, `conv_id` |
 | `run_code` | Grok code interpreter — math / stats / simulations | `model` |
-| `generate_image` | Grok Imagine text-to-image | `model`, `n`, `aspect_ratio` (13), `resolution` (1k/2k), `response_format` |
+| `generate_image` | Grok Imagine text-to-image | `model`, `n`, `aspect_ratio` (13), `resolution` (1k/2k), `response_format` (url/b64) |
 
 The bolded params are the ones most community servers omit.
+
+### Cost transparency (v0.3)
+
+Every call surfaces its actual cost. xAI returns `usage.cost_in_usd_ticks`
+(1e10 ticks = $1) on every response. Text tools append a footer
+(`_grok cost: $0.001234 · grok-4.3_`); `generate_image` adds `cost_ticks` /
+`cost_usd` to each returned dict. The footer is suppressed in `chat` json mode
+(`response_format` set) so the returned JSON stays valid.
 
 ## Differs from `wynandw87/claude-code-grok-mcp`
 
@@ -70,8 +78,9 @@ Set `XAI_API_KEY` in your shell env (get one at
 [console.x.ai](https://console.x.ai)). The server reads the env var on
 every call — key rotation works without restart.
 
-Restart Claude Code; the three tools are now available as
-`mcp__grok__chat`, `mcp__grok__search_x`, `mcp__grok__search_web`.
+Restart Claude Code; the five tools are now available as
+`mcp__grok__chat`, `mcp__grok__search_x`, `mcp__grok__search_web`,
+`mcp__grok__run_code`, `mcp__grok__generate_image`.
 
 ## Python library use
 
@@ -97,11 +106,18 @@ print(answer)
 - [x] `search_x` — full param surface
 - [x] `search_web` — full param surface
 
-### v0.2 (current)
+### v0.2
 - [x] `run_code` — Grok code interpreter
 - [x] `generate_image` — `grok-imagine` family with full param surface
 
-### v0.3 (planned)
+### v0.3 (current) — Tier A passthrough params
+- [x] `reasoning_effort` on `chat` (none / low / medium / high)
+- [x] cost surfacing — `cost_in_usd_ticks` on every call (footer + dict keys)
+- [x] `response_format` JSON Schema on `chat` (strict structured output)
+- [x] `max_turns` on `chat` / `search_x` / `search_web`
+- [x] `conv_id` prompt caching on `chat` / `search_x` / `search_web`
+
+### v0.3+ (planned)
 - [ ] Multi-turn chat with `session_id` (currently each `chat()` is single-turn)
 - [ ] `upload_file` + chat-with-files
 - [ ] `edit_image` / multi-image edit

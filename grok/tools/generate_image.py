@@ -51,6 +51,9 @@ def generate_image(
       - ``b64_json``: present only if ``response_format='b64_json'``.
       - ``revised_prompt``: Grok's interpreted prompt — diagnostic value
         when the output drifts from intent.
+      - ``cost_ticks`` / ``cost_usd``: the per-REQUEST cost (whole request,
+        not per-image) repeated on each dict for convenience. ``None`` if
+        the API omitted a usage block.
 
     Args:
         prompt: Text description. Required.

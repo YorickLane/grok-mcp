@@ -8,7 +8,12 @@ API reference: https://docs.x.ai/docs/tools/web-search
 
 from __future__ import annotations
 
-from grok.api import build_tool_spec, call_responses, format_citations_md
+from grok.api import (
+    build_tool_spec,
+    call_responses,
+    format_citations_md,
+    format_cost_footer,
+)
 
 
 def search_web(
@@ -18,6 +23,8 @@ def search_web(
     excluded_domains: list[str] | None = None,
     enable_image_understanding: bool = False,
     enable_image_search: bool = False,
+    max_turns: int | None = None,
+    conv_id: str | None = None,
     model: str = "grok-4.3",
 ) -> str:
     """Search the web and return Grok's synthesized answer with citations.
@@ -33,10 +40,15 @@ def search_web(
         enable_image_search: Let Grok search for relevant images and embed
             them as markdown ``![alt](url)`` in the response text. Useful
             when the consuming UI renders markdown.
+        max_turns: Cap on tool-using turns. Limits TURNS, not individual
+            tool calls — a single turn may fire multiple searches.
+        conv_id: Prompt-cache key — reuse across calls to hit cached input
+            tokens (sets both the cache key and the conversation header).
         model: Grok model ID. Default ``grok-4.3``.
 
     Returns:
-        Answer text followed by a markdown ``**Sources:**`` block.
+        Answer text followed by a markdown ``**Sources:**`` block and a
+        trailing cost footer.
 
     Raises:
         ValueError: If ``allowed_domains`` and ``excluded_domains`` both set,
@@ -58,5 +70,15 @@ def search_web(
         enable_image_search=enable_image_search or None,
     )
 
-    result = call_responses(prompt=query, model=model, tools=[tool_spec])
-    return result["text"] + format_citations_md(result["citations"])
+    result = call_responses(
+        prompt=query,
+        model=model,
+        tools=[tool_spec],
+        max_turns=max_turns,
+        conv_id=conv_id,
+    )
+    return (
+        result["text"]
+        + format_citations_md(result["citations"])
+        + format_cost_footer(result["cost_usd"], model)
+    )

@@ -14,7 +14,12 @@ API reference: https://docs.x.ai/docs/tools/code-execution
 
 from __future__ import annotations
 
-from grok.api import build_tool_spec, call_responses, format_citations_md
+from grok.api import (
+    build_tool_spec,
+    call_responses,
+    format_citations_md,
+    format_cost_footer,
+)
 
 
 def run_code(
@@ -37,7 +42,7 @@ def run_code(
     Returns:
         Grok's text answer (with embedded reasoning + numeric results)
         followed by an empty citations block (code execution doesn't
-        produce citations).
+        produce citations) and a trailing cost footer.
 
     Raises:
         ValueError: If ``prompt`` empty.
@@ -48,4 +53,8 @@ def run_code(
 
     tool_spec = build_tool_spec("code_interpreter")
     result = call_responses(prompt=prompt, model=model, tools=[tool_spec])
-    return result["text"] + format_citations_md(result["citations"])
+    return (
+        result["text"]
+        + format_citations_md(result["citations"])
+        + format_cost_footer(result["cost_usd"], model)
+    )

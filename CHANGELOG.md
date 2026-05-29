@@ -4,6 +4,37 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-05-29
+
+### Added — Tier A passthrough parameters (5 features)
+
+All payload shapes below are Responses-API-specific (`/v1/responses`) and were
+live-probe-verified against `https://api.x.ai/v1/responses` on 2026-05-29
+(HTTP 200). The docs' prose sometimes describes the Chat-Completions shape,
+which is wrong for this endpoint.
+
+- `reasoning_effort` on `chat` — `none` / `low` / `medium` / `high`. Wires
+  to nested `payload["reasoning"] = {"effort": ...}` (not a top-level
+  `reasoning_effort` key). Omitted when None (server default `low`). Invalid
+  values raise `ValueError`.
+- `cost_in_usd_ticks` surfaced — every Responses + Images response carries
+  `usage.cost_in_usd_ticks` (1e10 ticks = $1). Now exposed as `cost_ticks` /
+  `cost_usd` in the parsed envelope, appended as a `_grok cost: $… · model_`
+  footer to all text tools (`chat` / `search_x` / `search_web` / `run_code`),
+  and added as `cost_ticks` / `cost_usd` keys on each `generate_image` dict.
+  The footer is suppressed in `chat` json mode so the JSON return stays valid.
+- `response_format` (JSON Schema) on `chat` — wires to
+  `payload["text"] = {"format": {"type": "json_schema", "name", "schema",
+  "strict": True}}`. Returns the raw JSON string (no cost footer).
+- `max_turns` on `chat` / `search_x` / `search_web` — top-level
+  `payload["max_turns"]`. Caps tool-using TURNS, not individual tool calls.
+- `conv_id` (prompt caching) on `chat` / `search_x` / `search_web` — sets
+  both `payload["prompt_cache_key"]` and the `x-grok-conv-id` request header.
+
+### Changed
+- Tests: 21 → 41 (all passing, mocked HTTP). New `tests/test_v030.py` adds
+  payload-shape, cost-footer, json-mode, and validation coverage.
+
 ## [0.2.0] — 2026-05-28
 
 ### Added

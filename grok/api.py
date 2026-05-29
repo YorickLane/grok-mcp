@@ -20,6 +20,14 @@ DEFAULT_MODEL = "grok-4.3"
 DEFAULT_IMAGE_MODEL = "grok-imagine-image-quality"  # -pro deprecated 2026-05-15
 DEFAULT_TIMEOUT_S = 300.0
 
+# xAI Responses API accepts these reasoning effort levels (live-verified
+# 2026-05-29). Note: nested as payload["reasoning"]["effort"], NOT a
+# top-level "reasoning_effort" key (that's the Chat Completions shape).
+VALID_REASONING_EFFORTS = {"none", "low", "medium", "high"}
+
+# usage.cost_in_usd_ticks is an integer count of ticks; 1e10 ticks == $1.
+COST_TICKS_PER_USD = 1e10
+
 
 class GrokAPIError(RuntimeError):
     """xAI API returned a non-2xx response or an unparseable body."""
@@ -46,18 +54,44 @@ def call_responses(
     model: str = DEFAULT_MODEL,
     system_prompt: str | None = None,
     tools: list[dict[str, Any]] | None = None,
+    reasoning_effort: str | None = None,
+    response_format_schema: dict[str, Any] | None = None,
+    max_turns: int | None = None,
+    conv_id: str | None = None,
     timeout_s: float = DEFAULT_TIMEOUT_S,
 ) -> dict[str, Any]:
     """POST to xAI Responses API and return the parsed envelope.
 
     Returns a dict with keys: ``text`` (concatenated output_text blocks),
-    ``citations`` (list of {url, title} from url_citation annotations), and
-    ``raw`` (the full JSON response for inspection / debugging).
+    ``citations`` (list of {url, title} from url_citation annotations),
+    ``cost_ticks`` (int usage.cost_in_usd_ticks, or None), ``cost_usd``
+    (cost_ticks / 1e10, or None), and ``raw`` (the full JSON response for
+    inspection / debugging).
 
     Live Search tool specs go in `tools`. Citations are auto-enabled when any
     tool of type ``web_search`` or ``x_search`` is present.
+
+    v0.3 params (all None-filtered — the payload key is only set when the
+    param is provided, mirroring ``build_tool_spec`` discipline):
+
+    - ``reasoning_effort``: ``none`` / ``low`` / ``medium`` / ``high``.
+      Sets ``payload["reasoning"] = {"effort": <value>}`` (nested — the
+      top-level ``reasoning_effort`` key is the Chat-Completions shape and
+      is WRONG for /v1/responses). Live-verified 2026-05-29.
+    - ``response_format_schema``: a JSON Schema dict. Sets
+      ``payload["text"]["format"]`` with ``type=json_schema``, ``strict=True``.
+    - ``max_turns``: cap on tool-using turns (a single turn may fire
+      multiple tools). Harmless on plain chat.
+    - ``conv_id``: prompt-cache key. Sets both ``payload["prompt_cache_key"]``
+      AND the ``x-grok-conv-id`` request header (both needed for caching).
     """
     api_key = _require_api_key()
+
+    if reasoning_effort is not None and reasoning_effort not in VALID_REASONING_EFFORTS:
+        raise ValueError(
+            f"reasoning_effort must be one of {sorted(VALID_REASONING_EFFORTS)}, "
+            f"got {reasoning_effort!r}"
+        )
 
     input_items: list[dict[str, Any]] = []
     if system_prompt:
@@ -74,21 +108,47 @@ def call_responses(
         search_types = {"web_search", "x_search"}
         if any(t.get("type") in search_types for t in tools):
             payload["inline_citations"] = True
+    if reasoning_effort is not None:
+        payload["reasoning"] = {"effort": reasoning_effort}
+    if response_format_schema is not None:
+        payload["text"] = {
+            "format": {
+                "type": "json_schema",
+                "name": "response",
+                "schema": response_format_schema,
+                "strict": True,
+            }
+        }
+    if max_turns is not None:
+        payload["max_turns"] = max_turns
+    if conv_id is not None:
+        payload["prompt_cache_key"] = conv_id
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}",
+    }
+    if conv_id is not None:
+        headers["x-grok-conv-id"] = conv_id
 
     with httpx.Client(timeout=timeout_s) as client:
-        resp = client.post(
-            XAI_RESPONSES_URL,
-            json=payload,
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {api_key}",
-            },
-        )
+        resp = client.post(XAI_RESPONSES_URL, json=payload, headers=headers)
 
     if resp.status_code >= 400:
         raise GrokAPIError(resp.status_code, resp.text)
 
     return _parse_envelope(resp.json())
+
+
+def _cost_from_usage(usage: dict[str, Any] | None) -> tuple[int | None, float | None]:
+    """Extract (cost_ticks, cost_usd) from a usage block. Shared by both
+    the Responses and Images endpoints. Returns (None, None) if absent."""
+    if not usage:
+        return None, None
+    cost_ticks = usage.get("cost_in_usd_ticks")
+    if cost_ticks is None:
+        return None, None
+    return cost_ticks, cost_ticks / COST_TICKS_PER_USD
 
 
 def _parse_envelope(body: dict[str, Any]) -> dict[str, Any]:
@@ -111,9 +171,12 @@ def _parse_envelope(body: dict[str, Any]) -> dict[str, Any]:
                         }
                     )
 
+    cost_ticks, cost_usd = _cost_from_usage(body.get("usage"))
     return {
         "text": "\n".join(text_parts),
         "citations": citations,
+        "cost_ticks": cost_ticks,
+        "cost_usd": cost_usd,
         "raw": body,
     }
 
@@ -166,7 +229,15 @@ def call_images_generations(
         raise GrokAPIError(resp.status_code, resp.text)
 
     body = resp.json()
-    return list(body.get("data", []))
+    images = list(body.get("data", []))
+    # Surface per-request cost on each image dict. cost_in_usd_ticks is for
+    # the whole request, not per-image — documented as such in the tool
+    # docstring. Keeps the list[dict] return type intact.
+    cost_ticks, cost_usd = _cost_from_usage(body.get("usage"))
+    for img in images:
+        img["cost_ticks"] = cost_ticks
+        img["cost_usd"] = cost_usd
+    return images
 
 
 def build_tool_spec(tool_type: str, **params: Any) -> dict[str, Any]:
@@ -179,6 +250,19 @@ def build_tool_spec(tool_type: str, **params: Any) -> dict[str, Any]:
         if value is not None:
             spec[key] = value
     return spec
+
+
+def format_cost_footer(cost_usd: float | None, model: str) -> str:
+    """Render a trailing cost footer for text-returning tools, or empty
+    string when cost is unavailable. Appended to chat / search_x /
+    search_web / run_code output so the consumer can budget-track.
+
+    NOT appended in json mode (response_format active) — the returned text
+    is then a raw JSON string and a footer would corrupt it.
+    """
+    if cost_usd is None:
+        return ""
+    return f"\n\n—\n_grok cost: ${cost_usd:.6f} · {model}_"
 
 
 def format_citations_md(citations: list[dict[str, str]]) -> str:

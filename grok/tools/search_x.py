@@ -9,7 +9,12 @@ API reference: https://docs.x.ai/docs/tools/x-search
 
 from __future__ import annotations
 
-from grok.api import build_tool_spec, call_responses, format_citations_md
+from grok.api import (
+    build_tool_spec,
+    call_responses,
+    format_citations_md,
+    format_cost_footer,
+)
 
 
 def search_x(
@@ -21,6 +26,8 @@ def search_x(
     to_date: str | None = None,
     enable_image_understanding: bool = False,
     enable_video_understanding: bool = False,
+    max_turns: int | None = None,
+    conv_id: str | None = None,
     model: str = "grok-4.3",
 ) -> str:
     """Search X posts and return Grok's synthesized answer with citations.
@@ -41,11 +48,15 @@ def search_x(
             chart reading / screenshot content). Default False.
         enable_video_understanding: Analyze videos in matching posts
             (transcript / scene description). x_search-only. Default False.
+        max_turns: Cap on tool-using turns. Limits TURNS, not individual
+            tool calls — a single turn may fire multiple searches.
+        conv_id: Prompt-cache key — reuse across calls to hit cached input
+            tokens (sets both the cache key and the conversation header).
         model: Grok model ID. Default ``grok-4.3``.
 
     Returns:
-        Answer text followed by a markdown ``**Sources:**`` block. Empty
-        citations block if nothing was found.
+        Answer text followed by a markdown ``**Sources:**`` block and a
+        trailing cost footer. Empty citations block if nothing was found.
 
     Raises:
         ValueError: If ``allowed_x_handles`` and ``excluded_x_handles`` both
@@ -69,5 +80,15 @@ def search_x(
         enable_video_understanding=enable_video_understanding or None,
     )
 
-    result = call_responses(prompt=query, model=model, tools=[tool_spec])
-    return result["text"] + format_citations_md(result["citations"])
+    result = call_responses(
+        prompt=query,
+        model=model,
+        tools=[tool_spec],
+        max_turns=max_turns,
+        conv_id=conv_id,
+    )
+    return (
+        result["text"]
+        + format_citations_md(result["citations"])
+        + format_cost_footer(result["cost_usd"], model)
+    )
