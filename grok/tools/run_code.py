@@ -15,6 +15,7 @@ API reference: https://docs.x.ai/docs/tools/code-execution
 from __future__ import annotations
 
 from grok.api import (
+    DEFAULT_MODEL,
     build_tool_spec,
     call_responses,
     format_citations_md,
@@ -25,7 +26,7 @@ from grok.api import (
 def run_code(
     prompt: str,
     *,
-    model: str = "grok-4.3",
+    model: str = DEFAULT_MODEL,
 ) -> str:
     """Have Grok write + execute Python to answer ``prompt``.
 
@@ -36,8 +37,10 @@ def run_code(
         prompt: Plain-language description of what to compute. Include
             data inline (``[120000, 135000, ...]``), not as a file. The
             sandbox has no file I/O / no network.
-        model: Grok model ID. Default ``grok-4.3``. Reasoning models
-            produce better code; non-reasoning models may hallucinate.
+        model: Grok model ID. Defaults to the ``GROK_DEFAULT_MODEL`` env
+            var, else ``grok-4.5`` (non-dated alias, tracks latest stable).
+            Reasoning models produce better code; non-reasoning models may
+            hallucinate.
 
     Returns:
         Grok's text answer (with embedded reasoning + numeric results)

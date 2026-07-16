@@ -10,6 +10,7 @@ API reference: https://docs.x.ai/docs/tools/x-search
 from __future__ import annotations
 
 from grok.api import (
+    DEFAULT_MODEL,
     build_tool_spec,
     call_responses,
     format_citations_md,
@@ -28,7 +29,7 @@ def search_x(
     enable_video_understanding: bool = False,
     max_turns: int | None = None,
     conv_id: str | None = None,
-    model: str = "grok-4.3",
+    model: str = DEFAULT_MODEL,
 ) -> str:
     """Search X posts and return Grok's synthesized answer with citations.
 
@@ -52,7 +53,8 @@ def search_x(
             tool calls — a single turn may fire multiple searches.
         conv_id: Prompt-cache key — reuse across calls to hit cached input
             tokens (sets both the cache key and the conversation header).
-        model: Grok model ID. Default ``grok-4.3``.
+        model: Grok model ID. Defaults to the ``GROK_DEFAULT_MODEL`` env
+            var, else ``grok-4.5`` (non-dated alias, tracks latest stable).
 
     Returns:
         Answer text followed by a markdown ``**Sources:**`` block and a

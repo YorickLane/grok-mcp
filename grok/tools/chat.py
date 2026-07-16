@@ -10,13 +10,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from grok.api import call_responses, format_cost_footer
+from grok.api import DEFAULT_MODEL, call_responses, format_cost_footer
 
 
 def chat(
     prompt: str,
     *,
-    model: str = "grok-4.3",
+    model: str = DEFAULT_MODEL,
     system_prompt: str | None = None,
     reasoning_effort: str | None = None,
     response_format: dict[str, Any] | None = None,
@@ -30,8 +30,9 @@ def chat(
 
     Args:
         prompt: User message. Required.
-        model: Grok model ID. Default ``grok-4.3``. Other options at
-            https://docs.x.ai/docs/models
+        model: Grok model ID. Defaults to the ``GROK_DEFAULT_MODEL`` env
+            var, else ``grok-4.5`` (non-dated alias that tracks the latest
+            stable version). Other options at https://docs.x.ai/docs/models
         system_prompt: Optional developer/system role instructions.
         reasoning_effort: ``none`` / ``low`` / ``medium`` / ``high``. Omit
             for the server default (``low``). ``none`` skips reasoning

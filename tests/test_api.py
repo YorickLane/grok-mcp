@@ -8,11 +8,14 @@ from unittest.mock import patch
 import pytest
 
 from grok.api import (
+    DEFAULT_MODEL,
+    FALLBACK_DEFAULT_MODEL,
     GrokAPIError,
     _parse_envelope,
     _require_api_key,
     build_tool_spec,
     format_citations_md,
+    resolve_default_model,
 )
 
 
@@ -103,3 +106,46 @@ def test_require_api_key_missing() -> None:
 def test_require_api_key_present() -> None:
     with patch.dict(os.environ, {"XAI_API_KEY": "FAKE-FOR-TEST"}):
         assert _require_api_key() == "FAKE-FOR-TEST"
+
+
+def test_resolve_default_model_env_override() -> None:
+    with patch.dict(os.environ, {"GROK_DEFAULT_MODEL": "grok-4.20-0309-reasoning"}):
+        assert resolve_default_model() == "grok-4.20-0309-reasoning"
+
+
+def test_resolve_default_model_fallback_when_unset() -> None:
+    with patch.dict(os.environ, {}, clear=True):
+        assert resolve_default_model() == FALLBACK_DEFAULT_MODEL
+
+
+def test_resolve_default_model_empty_env_falls_back() -> None:
+    with patch.dict(os.environ, {"GROK_DEFAULT_MODEL": ""}):
+        assert resolve_default_model() == FALLBACK_DEFAULT_MODEL
+
+
+def test_fallback_is_non_dated_alias() -> None:
+    # Guard: the fallback must stay a non-dated alias (auto-tracks the
+    # latest stable version per docs.x.ai/developers/models). A dated ID
+    # like grok-4.20-0309-* would silently freeze the default.
+    import re
+
+    assert not re.search(r"-\d{4}$", FALLBACK_DEFAULT_MODEL)
+    assert not FALLBACK_DEFAULT_MODEL.endswith("-latest")
+
+
+def test_default_model_is_single_source_of_truth() -> None:
+    # Every tool signature (library layer AND MCP layer) must take its
+    # model default from grok.api.DEFAULT_MODEL — no hardcoded copies.
+    import inspect
+
+    import server
+    from grok.tools.chat import chat
+    from grok.tools.run_code import run_code
+    from grok.tools.search_web import search_web
+    from grok.tools.search_x import search_x
+
+    for fn in (chat, search_x, search_web, run_code):
+        assert inspect.signature(fn).parameters["model"].default == DEFAULT_MODEL
+
+    for fn in (server.chat, server.search_x, server.search_web, server.run_code):
+        assert inspect.signature(fn).parameters["model"].default == DEFAULT_MODEL

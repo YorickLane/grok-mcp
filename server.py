@@ -12,6 +12,7 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
+from grok.api import DEFAULT_MODEL
 from grok.tools.chat import chat as _chat
 from grok.tools.generate_image import generate_image as _generate_image
 from grok.tools.run_code import run_code as _run_code
@@ -24,7 +25,7 @@ mcp = FastMCP("grok")
 @mcp.tool()
 def chat(
     prompt: str,
-    model: str = "grok-4.3",
+    model: str = DEFAULT_MODEL,
     system_prompt: str | None = None,
     reasoning_effort: str | None = None,
     response_format: dict[str, Any] | None = None,
@@ -39,8 +40,9 @@ def chat(
 
     Args:
         prompt: User message. Required, non-empty.
-        model: Grok model ID. Default grok-4.3. Other options at
-            https://docs.x.ai/docs/models
+        model: Grok model ID. Defaults to the GROK_DEFAULT_MODEL env var,
+            else grok-4.5 (non-dated alias that tracks the latest stable
+            version). Other options at https://docs.x.ai/docs/models
         system_prompt: Optional developer/system role instructions.
         reasoning_effort: none / low / medium / high. Omit for server
             default (low). Use "none" for the cheapest/fastest answers
@@ -80,7 +82,7 @@ def search_x(
     enable_video_understanding: bool = False,
     max_turns: int | None = None,
     conv_id: str | None = None,
-    model: str = "grok-4.3",
+    model: str = DEFAULT_MODEL,
 ) -> str:
     """Search X (Twitter) via Grok Live Search with full xAI parameter surface.
 
@@ -102,7 +104,8 @@ def search_x(
         max_turns: Cap on tool-using turns. Limits TURNS, not individual
             tool calls — one turn may fire multiple searches.
         conv_id: Prompt-cache key. Reuse across calls for cheaper repeats.
-        model: Grok model ID. Default grok-4.3.
+        model: Grok model ID. Defaults to the GROK_DEFAULT_MODEL env var,
+            else grok-4.5 (non-dated alias, tracks latest stable).
 
     Returns:
         Answer text + markdown **Sources:** block + trailing cost footer.
@@ -130,7 +133,7 @@ def search_web(
     enable_image_search: bool = False,
     max_turns: int | None = None,
     conv_id: str | None = None,
-    model: str = "grok-4.3",
+    model: str = DEFAULT_MODEL,
 ) -> str:
     """Search the web via Grok Live Search with full xAI parameter surface.
 
@@ -147,7 +150,8 @@ def search_web(
         max_turns: Cap on tool-using turns. Limits TURNS, not individual
             tool calls — one turn may fire multiple searches.
         conv_id: Prompt-cache key. Reuse across calls for cheaper repeats.
-        model: Grok model ID. Default grok-4.3.
+        model: Grok model ID. Defaults to the GROK_DEFAULT_MODEL env var,
+            else grok-4.5 (non-dated alias, tracks latest stable).
 
     Returns:
         Answer text + markdown **Sources:** block + trailing cost footer.
@@ -167,7 +171,7 @@ def search_web(
 @mcp.tool()
 def run_code(
     prompt: str,
-    model: str = "grok-4.3",
+    model: str = DEFAULT_MODEL,
 ) -> str:
     """Execute Python via Grok's sandboxed code interpreter.
 
@@ -179,7 +183,8 @@ def run_code(
     Args:
         prompt: Plain-language description of what to compute. Include
             data inline, not as a file.
-        model: Grok model ID. Default grok-4.3.
+        model: Grok model ID. Defaults to the GROK_DEFAULT_MODEL env var,
+            else grok-4.5 (non-dated alias, tracks latest stable).
 
     Returns:
         Grok's text answer with numeric results and embedded reasoning,

@@ -44,7 +44,7 @@ The bolded params are the ones most community servers omit.
 
 Every call surfaces its actual cost. xAI returns `usage.cost_in_usd_ticks`
 (1e10 ticks = $1) on every response. Text tools append a footer
-(`_grok cost: $0.001234 · grok-4.3_`); `generate_image` adds `cost_ticks` /
+(`_grok cost: $0.001234 · grok-4.5_`); `generate_image` adds `cost_ticks` /
 `cost_usd` to each returned dict. The footer is suppressed in `chat` json mode
 (`response_format` set) so the returned JSON stays valid.
 
@@ -77,6 +77,23 @@ claude mcp add -s user -t stdio grok \
 Set `XAI_API_KEY` in your shell env (get one at
 [console.x.ai](https://console.x.ai)). The server reads the env var on
 every call — key rotation works without restart.
+
+### Default model
+
+All text tools default to `grok-4.5` — a **non-dated xAI alias** that
+xAI keeps pointed at the latest stable version of the model (per
+[docs.x.ai/developers/models](https://docs.x.ai/developers/models):
+`<modelname>` is aliased to the latest stable version;
+`<modelname>-latest` to the newest version; dated IDs pin a release).
+The default therefore upgrades automatically when xAI ships a new
+stable snapshot — no code change needed.
+
+To override, set `GROK_DEFAULT_MODEL` in the environment the server is
+launched with (read once at server start):
+
+```bash
+GROK_DEFAULT_MODEL=grok-4.20-0309-reasoning  # pin a dated release, or any other model ID
+```
 
 Restart Claude Code; the five tools are now available as
 `mcp__grok__chat`, `mcp__grok__search_x`, `mcp__grok__search_web`,

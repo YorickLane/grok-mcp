@@ -115,12 +115,12 @@ def test_parse_envelope_cost_none_when_absent() -> None:
 
 
 def test_format_cost_footer_present() -> None:
-    footer = format_cost_footer(0.000123, "grok-4.3")
-    assert footer == "\n\n—\n_grok cost: $0.000123 · grok-4.3_"
+    footer = format_cost_footer(0.000123, "grok-4.5")
+    assert footer == "\n\n—\n_grok cost: $0.000123 · grok-4.5_"
 
 
 def test_format_cost_footer_none_returns_empty() -> None:
-    assert format_cost_footer(None, "grok-4.3") == ""
+    assert format_cost_footer(None, "grok-4.5") == ""
 
 
 def test_chat_appends_cost_footer() -> None:

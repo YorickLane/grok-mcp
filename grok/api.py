@@ -16,7 +16,29 @@ import httpx
 
 XAI_RESPONSES_URL = "https://api.x.ai/v1/responses"
 XAI_IMAGES_URL = "https://api.x.ai/v1/images/generations"
-DEFAULT_MODEL = "grok-4.3"
+
+# Fallback default model. "grok-4.5" is a NON-DATED xAI alias: per
+# https://docs.x.ai/developers/models, "<modelname> is aliased to the latest
+# stable version" (dated IDs like grok-4.20-0309-* pin a release;
+# <modelname>-latest tracks the newest, possibly non-stable, version).
+# Using the plain alias means xAI upgrades the underlying model for us —
+# no code change needed when a new stable grok-4.5 snapshot ships.
+FALLBACK_DEFAULT_MODEL = "grok-4.5"
+
+
+def resolve_default_model() -> str:
+    """Single source of truth for the default text model.
+
+    Reads ``GROK_DEFAULT_MODEL`` from the environment (empty string is
+    treated as unset), falling back to :data:`FALLBACK_DEFAULT_MODEL`.
+    """
+    return os.environ.get("GROK_DEFAULT_MODEL") or FALLBACK_DEFAULT_MODEL
+
+
+# Resolved once at import (i.e. server start) so tool signatures — and the
+# MCP tool schemas generated from them — show the real default. Set
+# GROK_DEFAULT_MODEL in the environment the server is launched with.
+DEFAULT_MODEL = resolve_default_model()
 DEFAULT_IMAGE_MODEL = "grok-imagine-image-quality"  # -pro deprecated 2026-05-15
 DEFAULT_TIMEOUT_S = 300.0
 
