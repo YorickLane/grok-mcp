@@ -54,7 +54,7 @@ def search_x(
         conv_id: Prompt-cache key — reuse across calls to hit cached input
             tokens (sets both the cache key and the conversation header).
         model: Grok model ID. Defaults to the ``GROK_DEFAULT_MODEL`` env
-            var, else ``grok-4.5`` (non-dated alias, tracks latest stable).
+            var, else ``grok-4.7`` (non-dated alias, same-model snapshots only).
 
     Returns:
         Answer text followed by a markdown ``**Sources:**`` block and a

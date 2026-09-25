@@ -31,8 +31,8 @@ def chat(
     Args:
         prompt: User message. Required.
         model: Grok model ID. Defaults to the ``GROK_DEFAULT_MODEL`` env
-            var, else ``grok-4.5`` (non-dated alias that tracks the latest
-            stable version). Other options at https://docs.x.ai/docs/models
+            var, else ``grok-4.7`` (non-dated alias: follows new grok-4.7
+            snapshots, not newer generations). Other options at https://docs.x.ai/docs/models
         system_prompt: Optional developer/system role instructions.
         reasoning_effort: ``none`` / ``low`` / ``medium`` / ``high``. Omit
             for the server default (``low``). ``none`` skips reasoning

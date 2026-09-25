@@ -38,7 +38,7 @@ def run_code(
             data inline (``[120000, 135000, ...]``), not as a file. The
             sandbox has no file I/O / no network.
         model: Grok model ID. Defaults to the ``GROK_DEFAULT_MODEL`` env
-            var, else ``grok-4.5`` (non-dated alias, tracks latest stable).
+            var, else ``grok-4.7`` (non-dated alias, same-model snapshots only).
             Reasoning models produce better code; non-reasoning models may
             hallucinate.
 

@@ -12,7 +12,7 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
-from grok.api import DEFAULT_MODEL
+from grok.api import DEFAULT_IMAGE_MODEL, DEFAULT_MODEL
 from grok.tools.chat import chat as _chat
 from grok.tools.generate_image import generate_image as _generate_image
 from grok.tools.run_code import run_code as _run_code
@@ -41,8 +41,8 @@ def chat(
     Args:
         prompt: User message. Required, non-empty.
         model: Grok model ID. Defaults to the GROK_DEFAULT_MODEL env var,
-            else grok-4.5 (non-dated alias that tracks the latest stable
-            version). Other options at https://docs.x.ai/docs/models
+            else grok-4.7 (non-dated alias: follows new grok-4.7 snapshots,
+            not newer generations). Other options at https://docs.x.ai/docs/models
         system_prompt: Optional developer/system role instructions.
         reasoning_effort: none / low / medium / high. Omit for server
             default (low). Use "none" for the cheapest/fastest answers
@@ -105,7 +105,7 @@ def search_x(
             tool calls — one turn may fire multiple searches.
         conv_id: Prompt-cache key. Reuse across calls for cheaper repeats.
         model: Grok model ID. Defaults to the GROK_DEFAULT_MODEL env var,
-            else grok-4.5 (non-dated alias, tracks latest stable).
+            else grok-4.7 (non-dated alias, same-model snapshots only).
 
     Returns:
         Answer text + markdown **Sources:** block + trailing cost footer.
@@ -151,7 +151,7 @@ def search_web(
             tool calls — one turn may fire multiple searches.
         conv_id: Prompt-cache key. Reuse across calls for cheaper repeats.
         model: Grok model ID. Defaults to the GROK_DEFAULT_MODEL env var,
-            else grok-4.5 (non-dated alias, tracks latest stable).
+            else grok-4.7 (non-dated alias, same-model snapshots only).
 
     Returns:
         Answer text + markdown **Sources:** block + trailing cost footer.
@@ -184,7 +184,7 @@ def run_code(
         prompt: Plain-language description of what to compute. Include
             data inline, not as a file.
         model: Grok model ID. Defaults to the GROK_DEFAULT_MODEL env var,
-            else grok-4.5 (non-dated alias, tracks latest stable).
+            else grok-4.7 (non-dated alias, same-model snapshots only).
 
     Returns:
         Grok's text answer with numeric results and embedded reasoning,
@@ -196,7 +196,7 @@ def run_code(
 @mcp.tool()
 def generate_image(
     prompt: str,
-    model: str = "grok-imagine-image-quality",
+    model: str = DEFAULT_IMAGE_MODEL,
     n: int = 1,
     aspect_ratio: str | None = None,
     resolution: str | None = None,
@@ -204,13 +204,13 @@ def generate_image(
 ) -> list[dict[str, Any]]:
     """Generate images from text via Grok Imagine.
 
-    Default model is grok-imagine-image-quality (the -pro variant was
-    deprecated 2026-05-15). URLs returned are signed temporary; download
+    Default model is grok-imagine-image-2.0 (grok-imagine-image-quality is
+    retired 2026-11-02). URLs returned are signed temporary; download
     promptly or request response_format='b64_json' for embedded payload.
 
     Args:
         prompt: Text description of the image. Required.
-        model: Grok Imagine model. Default grok-imagine-image-quality.
+        model: Grok Imagine model. Default grok-imagine-image-2.0.
         n: Number of images (1-10, batch in one request).
         aspect_ratio: One of 1:1 / 16:9 / 9:16 / 4:3 / 3:4 / 3:2 / 2:3 /
             2:1 / 1:2 / 19.5:9 / 9:19.5 / 20:9 / 9:20 / auto.

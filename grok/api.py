@@ -17,13 +17,13 @@ import httpx
 XAI_RESPONSES_URL = "https://api.x.ai/v1/responses"
 XAI_IMAGES_URL = "https://api.x.ai/v1/images/generations"
 
-# Fallback default model. "grok-4.5" is a NON-DATED xAI alias: per
+# Fallback default model. "grok-4.7" is a NON-DATED xAI alias: per
 # https://docs.x.ai/developers/models, "<modelname> is aliased to the latest
 # stable version" (dated IDs like grok-4.20-0309-* pin a release;
 # <modelname>-latest tracks the newest, possibly non-stable, version).
-# Using the plain alias means xAI upgrades the underlying model for us —
-# no code change needed when a new stable grok-4.5 snapshot ships.
-FALLBACK_DEFAULT_MODEL = "grok-4.5"
+# The alias only follows new snapshots of the SAME model (grok-4.7), never a
+# newer generation — moving to grok-4.8 etc. is a code change here.
+FALLBACK_DEFAULT_MODEL = "grok-4.7"
 
 
 def resolve_default_model() -> str:
@@ -39,7 +39,9 @@ def resolve_default_model() -> str:
 # MCP tool schemas generated from them — show the real default. Set
 # GROK_DEFAULT_MODEL in the environment the server is launched with.
 DEFAULT_MODEL = resolve_default_model()
-DEFAULT_IMAGE_MODEL = "grok-imagine-image-quality"  # -pro deprecated 2026-05-15
+# grok-imagine-image-quality is retired 2026-11-02; 2.0 with quality omitted
+# ("auto") serves "low" for generation, the same tier the retirement redirect uses.
+DEFAULT_IMAGE_MODEL = "grok-imagine-image-2.0"
 DEFAULT_TIMEOUT_S = 300.0
 
 # xAI Responses API accepts these reasoning effort levels (live-verified

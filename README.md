@@ -80,13 +80,13 @@ every call — key rotation works without restart.
 
 ### Default model
 
-All text tools default to `grok-4.5` — a **non-dated xAI alias** that
+All text tools default to `grok-4.7` — a **non-dated xAI alias** that
 xAI keeps pointed at the latest stable version of the model (per
 [docs.x.ai/developers/models](https://docs.x.ai/developers/models):
 `<modelname>` is aliased to the latest stable version;
 `<modelname>-latest` to the newest version; dated IDs pin a release).
-The default therefore upgrades automatically when xAI ships a new
-stable snapshot — no code change needed.
+The alias follows new `grok-4.7` snapshots only; a newer generation
+(`grok-4.8` …) needs a change to `FALLBACK_DEFAULT_MODEL`.
 
 To override, set `GROK_DEFAULT_MODEL` in the environment the server is
 launched with (read once at server start):

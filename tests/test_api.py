@@ -124,8 +124,8 @@ def test_resolve_default_model_empty_env_falls_back() -> None:
 
 
 def test_fallback_is_non_dated_alias() -> None:
-    # Guard: the fallback must stay a non-dated alias (auto-tracks the
-    # latest stable version per docs.x.ai/developers/models). A dated ID
+    # Guard: the fallback must stay a non-dated alias (tracks the latest
+    # stable snapshot of that model per docs.x.ai/developers/models). A dated ID
     # like grok-4.20-0309-* would silently freeze the default.
     import re
 
@@ -149,3 +149,17 @@ def test_default_model_is_single_source_of_truth() -> None:
 
     for fn in (server.chat, server.search_x, server.search_web, server.run_code):
         assert inspect.signature(fn).parameters["model"].default == DEFAULT_MODEL
+
+
+def test_default_image_model_is_single_source_and_not_retired() -> None:
+    # grok-imagine-image-quality is retired 2026-11-02 (redirected to
+    # grok-imagine-image-2.0 quality=low); the MCP layer must not keep a copy.
+    import inspect
+
+    import server
+    from grok.api import DEFAULT_IMAGE_MODEL
+    from grok.tools.generate_image import generate_image
+
+    assert DEFAULT_IMAGE_MODEL != "grok-imagine-image-quality"
+    for fn in (generate_image, server.generate_image):
+        assert inspect.signature(fn).parameters["model"].default == DEFAULT_IMAGE_MODEL

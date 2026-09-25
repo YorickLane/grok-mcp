@@ -1,7 +1,7 @@
 """Generate images via Grok Imagine.
 
-Default model is ``grok-imagine-image-quality`` — ``-pro`` was deprecated
-2026-05-15. The model name accepted any string at API level; we don't
+Default model is ``grok-imagine-image-2.0`` — ``grok-imagine-image-quality``
+is retired 2026-11-02. The model name accepted any string at API level; we don't
 enumerate AVAILABLE_MODELS (silent-fallback risk learned from upstream
 fork hard-coding).
 
@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from grok.api import call_images_generations
+from grok.api import DEFAULT_IMAGE_MODEL, call_images_generations
 
 VALID_ASPECT_RATIOS = {
     "1:1",
@@ -38,7 +38,7 @@ VALID_RESPONSE_FORMATS = {"url", "b64_json"}
 def generate_image(
     prompt: str,
     *,
-    model: str = "grok-imagine-image-quality",
+    model: str = DEFAULT_IMAGE_MODEL,
     n: int = 1,
     aspect_ratio: str | None = None,
     resolution: str | None = None,
@@ -57,8 +57,8 @@ def generate_image(
 
     Args:
         prompt: Text description. Required.
-        model: Grok Imagine model. Default ``grok-imagine-image-quality``
-            (``-pro`` deprecated 2026-05-15).
+        model: Grok Imagine model. Default ``grok-imagine-image-2.0``
+            (``grok-imagine-image-quality`` retired 2026-11-02).
         n: Number of images (batch). Clamped to 1-10.
         aspect_ratio: One of ``1:1`` / ``16:9`` / ``9:16`` / ``4:3`` /
             ``3:4`` / ``3:2`` / ``2:3`` / ``2:1`` / ``1:2`` / ``19.5:9`` /
