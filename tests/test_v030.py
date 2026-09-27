@@ -78,9 +78,11 @@ def test_reasoning_effort_omitted_when_none() -> None:
 
 
 def test_reasoning_effort_invalid_raises() -> None:
-    with patch.dict("os.environ", {"XAI_API_KEY": "FAKE"}):
-        with pytest.raises(ValueError, match="reasoning_effort"):
-            call_responses("hi", reasoning_effort="extreme")
+    with (
+        patch.dict("os.environ", {"XAI_API_KEY": "FAKE"}),
+        pytest.raises(ValueError, match="reasoning_effort"),
+    ):
+        call_responses("hi", reasoning_effort="extreme")
 
 
 def test_reasoning_effort_all_valid_values() -> None:
