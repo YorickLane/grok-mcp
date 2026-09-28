@@ -138,7 +138,7 @@ def test_default_model_is_single_source_of_truth() -> None:
     # model default from grok.api.DEFAULT_MODEL — no hardcoded copies.
     import inspect
 
-    import server
+    from grok import server
     from grok.tools.chat import chat
     from grok.tools.run_code import run_code
     from grok.tools.search_web import search_web
@@ -156,7 +156,7 @@ def test_default_image_model_is_single_source_and_not_retired() -> None:
     # grok-imagine-image-2.0 quality=low); the MCP layer must not keep a copy.
     import inspect
 
-    import server
+    from grok import server
     from grok.api import DEFAULT_IMAGE_MODEL
     from grok.tools.generate_image import generate_image
 

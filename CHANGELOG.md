@@ -4,6 +4,29 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-09-29
+
+### Changed
+- MCP Python SDK 2.x: dependency `mcp>=2.2,<3` (was `>=1.28,<2`; the 1.x
+  line now gets only critical and security fixes). `FastMCP` is now
+  `MCPServer`. The text tools still declare no `outputSchema` and send no
+  `structuredContent` — verified over stdio and in Claude Code, where the
+  model receives the plain text.
+- Tool errors: mcp 2.x hands the model only `Error executing tool <name>` for
+  any exception other than `ToolError`. Bad arguments (`ValueError`), xAI API
+  errors (`GrokAPIError`, including a missing `XAI_API_KEY`) and network
+  failures (`httpx.HTTPError`) are re-raised as `ToolError`, so the model
+  still reads e.g. `Error executing tool chat: prompt cannot be empty`. Any
+  other exception counts as a crash: generic message to the model, traceback
+  in the server log.
+- The server moved to `grok/server.py`. The root `server.py` is now a
+  launcher, so registrations that run `python <repo>/server.py` keep working.
+
+### Fixed
+- `grok-mcp` console script pointed at `server:main`, but the wheel ships only
+  `grok/`, so `uvx --from <wheel> grok-mcp` failed with `ModuleNotFoundError:
+  No module named 'server'`. It is now `grok.server:main`.
+
 ## [0.4.0] — 2026-09-28
 
 ### Added

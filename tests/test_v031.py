@@ -96,7 +96,7 @@ def test_mcp_layer_exposes_every_library_param() -> None:
     must also reach the MCP schema, or MCP clients can never set it."""
     import inspect
 
-    import server
+    from grok import server
     from grok.tools import chat, generate_image, run_code, search_web, search_x
 
     for module in (chat, search_x, search_web, run_code, generate_image):

@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 [![MCP](https://img.shields.io/badge/MCP-stdio-green.svg)](https://modelcontextprotocol.io/)
-[![Status](https://img.shields.io/badge/status-v0.4.0%20early-orange.svg)](#roadmap)
+[![Status](https://img.shields.io/badge/status-v0.5.0%20early-orange.svg)](#roadmap)
 
 ## Why this exists
 
@@ -111,6 +111,14 @@ claude mcp add -s user -t stdio grok \
   $(pwd)/.venv/bin/python3 $(pwd)/server.py
 ```
 
+Or skip the clone and let `uvx` install it from GitHub (`grok-mcp` on PyPI
+is a different project):
+
+```bash
+claude mcp add -s user -t stdio grok -- \
+  uvx --from git+https://github.com/YorickLane/grok-mcp grok-mcp
+```
+
 Set `XAI_API_KEY` in your shell env (get one at
 [console.x.ai](https://console.x.ai)). The server reads the env var on
 every call — key rotation works without restart.
@@ -171,10 +179,14 @@ print(answer)
 - [x] `max_turns` on `chat` / `search_x` / `search_web`
 - [x] `conv_id` prompt caching on `chat` / `search_x` / `search_web`
 
-### v0.4 (current) — search trace
+### v0.4 — search trace
 - [x] `search_x` / `search_web` report which searches ran and what X Search fetched, with a warning when it fetched nothing
 - [x] text tools return plain markdown (no `structuredContent` JSON wrapper)
 - [x] `generate_image` `resolution="1.5k"`
+
+### v0.5 (current) — MCP Python SDK 2.x
+- [x] `mcp>=2.2,<3` (`MCPServer`); tool errors still reach the model as text
+- [x] `grok-mcp` console script works from the wheel (`uvx --from git+…`)
 
 ### v0.3.1 — catch up with xAI API changes
 - [x] `reasoning_effort` values follow grok-4.5+: `low` / `medium` / `high` / `xhigh` (`none` now returns HTTP 400)

@@ -1,6 +1,6 @@
 [project]
 name = "grok-mcp"
-version = "0.4.0"
+version = "0.5.0"
 description = "Lean MCP server for xAI Grok — full Live Search capability surface, modular architecture, explicit roadmap"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -16,7 +16,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "mcp>=1.28,<2",
+    "mcp>=2.2,<3",
     "httpx[socks]>=0.27.0",
 ]
 
@@ -24,7 +24,7 @@ dependencies = [
 dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.16,<0.17"]
 
 [project.scripts]
-grok-mcp = "server:main"
+grok-mcp = "grok.server:main"
 
 [project.urls]
 Homepage = "https://github.com/YorickLane/grok-mcp"

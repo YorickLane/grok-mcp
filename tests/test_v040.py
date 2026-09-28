@@ -126,13 +126,14 @@ def test_search_web_appends_trace() -> None:
 
 
 def test_text_tools_have_no_output_schema() -> None:
-    """With an outputSchema, FastMCP also sends {"result": "<text>"} as
+    """With an outputSchema, MCPServer also sends {"result": "<text>"} as
     structuredContent, and Claude Code hands the model that JSON (newlines
     escaped) instead of the markdown text (observed 2026-09-28)."""
     import asyncio
 
-    import server
+    from grok import server
 
-    schemas = {t.name: t.outputSchema for t in asyncio.run(server.mcp.list_tools())}
+    schemas = {t.name: t.output_schema for t in asyncio.run(server.mcp.list_tools())}
     for name in ("chat", "search_x", "search_web", "run_code"):
         assert schemas[name] is None, name
+    assert schemas["generate_image"] is not None
