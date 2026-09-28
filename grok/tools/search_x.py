@@ -72,9 +72,7 @@ def search_x(
     if not query.strip():
         raise ValueError("query cannot be empty")
     if allowed_x_handles and excluded_x_handles:
-        raise ValueError(
-            "allowed_x_handles and excluded_x_handles are mutually exclusive"
-        )
+        raise ValueError("allowed_x_handles and excluded_x_handles are mutually exclusive")
 
     tool_spec = build_tool_spec(
         "x_search",

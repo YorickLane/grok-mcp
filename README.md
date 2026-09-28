@@ -181,6 +181,7 @@ after call**:
 ```python
 # pre-call: catch xAI schema lag in my MCP
 from epistemics.tools.probe_api import probe_api_endpoint
+
 verdict = probe_api_endpoint(
     method="GET",
     url="https://docs.x.ai/docs/tools/x-search",

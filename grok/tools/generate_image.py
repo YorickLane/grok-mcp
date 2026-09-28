@@ -87,15 +87,11 @@ def generate_image(
     if not prompt.strip():
         raise ValueError("prompt cannot be empty")
     if aspect_ratio is not None and aspect_ratio not in VALID_ASPECT_RATIOS:
-        raise ValueError(
-            f"aspect_ratio must be one of {sorted(VALID_ASPECT_RATIOS)}"
-        )
+        raise ValueError(f"aspect_ratio must be one of {sorted(VALID_ASPECT_RATIOS)}")
     if resolution is not None and resolution not in VALID_RESOLUTIONS:
         raise ValueError(f"resolution must be one of {sorted(VALID_RESOLUTIONS)}")
     if response_format is not None and response_format not in VALID_RESPONSE_FORMATS:
-        raise ValueError(
-            f"response_format must be one of {sorted(VALID_RESPONSE_FORMATS)}"
-        )
+        raise ValueError(f"response_format must be one of {sorted(VALID_RESPONSE_FORMATS)}")
     if quality is not None and quality not in VALID_QUALITIES:
         raise ValueError(f"quality must be one of {sorted(VALID_QUALITIES)}")
 

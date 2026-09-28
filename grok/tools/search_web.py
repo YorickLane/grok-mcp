@@ -64,9 +64,7 @@ def search_web(
     if not query.strip():
         raise ValueError("query cannot be empty")
     if allowed_domains and excluded_domains:
-        raise ValueError(
-            "allowed_domains and excluded_domains are mutually exclusive"
-        )
+        raise ValueError("allowed_domains and excluded_domains are mutually exclusive")
 
     tool_spec = build_tool_spec(
         "web_search",
