@@ -4,6 +4,46 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.3.1] — 2026-09-28
+
+Catch-up with xAI API changes since 0.3.0. Payload shapes live-verified
+against `https://api.x.ai` on 2026-09-28.
+
+### Fixed
+- `reasoning_effort` accepts `low` / `medium` / `high` / `xhigh`, the set for
+  grok-4.5 and later. `none` was dropped: grok-4.7 answers it with HTTP 400
+  ("This model does not support `reasoning_effort` value `none`"), and
+  `xhigh` was rejected locally although the API accepts it. Docstrings no
+  longer claim the server default is `low` — it is `high` on grok-4.5+.
+- `generate_image` accepts the `21:9` and `5:2` aspect ratios (xAI added
+  them in August).
+- Dependency pin `mcp>=1.0.0,<2`: mcp 2.x removed `mcp.server.fastmcp`, so a
+  fresh install failed at import (198797f).
+- CI: ruff pinned `>=0.16,<0.17` after a new default rule (SIM117) turned CI
+  red; actions bumped to the node24 majors (58095e7).
+
+### Added
+- `reasoning_effort` on `search_x` / `search_web`. Omitted by default
+  (model default `high`). On one test query, two `low` runs took ~5 s
+  and ~170 reasoning tokens each; two runs at the default took 8 s and 27 s
+  (430 / 1,760 reasoning tokens).
+- `quality` on `generate_image` (`low` / `medium` / `auto`,
+  grok-imagine-image-2.0 only).
+- Test that every library-layer parameter is also declared on the MCP layer.
+
+### Changed
+- Default text model `grok-4.7`, default image model
+  `grok-imagine-image-2.0` (`grok-imagine-image-quality` retires
+  2026-11-02) (a24b8b6).
+
+### Removed
+- The top-level `inline_citations` payload key. It is not in the
+  `/v1/responses` schema; inline citations are on by default.
+
+### Docs
+- README: X Search per-post billing, when to use the Grok Build CLI instead,
+  and the v0.3+ roadmap items moved to "Dropped".
+
 ## [0.3.0] — 2026-05-29
 
 ### Added — Tier A passthrough parameters (5 features)

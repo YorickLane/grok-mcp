@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 [![MCP](https://img.shields.io/badge/MCP-stdio-green.svg)](https://modelcontextprotocol.io/)
-[![Status](https://img.shields.io/badge/status-v0.3.0%20early-orange.svg)](#roadmap)
+[![Status](https://img.shields.io/badge/status-v0.3.1%20early-orange.svg)](#roadmap)
 
 ## Why this exists
 
@@ -26,17 +26,17 @@ parameters xAI shipped weeks ago. Concrete example:
 
 This server's design rule: **if the xAI API exposes it, the MCP exposes it.**
 
-## What it ships (v0.3)
+## What it ships (v0.3.1)
 
-5 tools wired with the full xAI parameter surface as of 2026-05-29:
+5 tools wired with the full xAI parameter surface as of 2026-09-28:
 
 | Tool | Purpose | Key params |
 |---|---|---|
 | `chat` | Plain chat with Grok — reasoning, codegen, translation | `model`, `system_prompt`, **`reasoning_effort`**, **`response_format`** (JSON Schema), **`max_turns`**, **`conv_id`** (caching) |
-| `search_x` | X (Twitter) Live Search | `allowed/excluded_x_handles` (cap 20), date range, **`enable_image_understanding`**, **`enable_video_understanding`**, `max_turns`, `conv_id` |
-| `search_web` | Web Live Search | `allowed/excluded_domains` (cap 5), **`enable_image_understanding`**, **`enable_image_search`** (markdown embed), `max_turns`, `conv_id` |
+| `search_x` | X (Twitter) Live Search | `allowed/excluded_x_handles` (cap 20), date range, **`enable_image_understanding`**, **`enable_video_understanding`**, `reasoning_effort`, `max_turns`, `conv_id` |
+| `search_web` | Web Live Search | `allowed/excluded_domains` (cap 5), **`enable_image_understanding`**, **`enable_image_search`** (markdown embed), `reasoning_effort`, `max_turns`, `conv_id` |
 | `run_code` | Grok code interpreter — math / stats / simulations | `model` |
-| `generate_image` | Grok Imagine text-to-image | `model`, `n`, `aspect_ratio` (13), `resolution` (1k/2k), `response_format` (url/b64) |
+| `generate_image` | Grok Imagine text-to-image | `model`, `n`, `aspect_ratio` (15), `resolution` (1k/2k), `quality` (low/medium/auto), `response_format` (url/b64) |
 
 The bolded params are the ones most community servers omit.
 
@@ -47,6 +47,26 @@ Every call surfaces its actual cost. xAI returns `usage.cost_in_usd_ticks`
 (`_grok cost: $0.001234 · grok-4.5_`); `generate_image` adds `cost_ticks` /
 `cost_usd` to each returned dict. The footer is suppressed in `chat` json mode
 (`response_format` set) so the returned JSON stays valid.
+
+**X Search is billed per item fetched** (since 2026-09-21: $5 / 1k posts,
+$10 / 1k user profiles, on top of tokens), so the cost of one `search_x` call
+tracks how much it pulls. One test on 2026-09-28: unrestricted, a query
+fetched 53 posts + 6 profiles and cost $0.40; the same topic restricted to
+one handle fetched 4–9 posts and cost $0.03–0.07. Narrow with
+`allowed_x_handles` / date windows; `reasoning_effort="low"` trims the token
+part (grok-4.5+ default to `high`).
+
+## Do you need this?
+
+If you have a SuperGrok subscription, the [Grok Build CLI](https://docs.x.ai/build/overview)
+already searches X and the web on your plan instead of per-call API billing:
+`grok -p "..." --tools x_search,web_search`. Its model picks the search
+arguments itself, so account and date limits are requests in the prompt, not
+guarantees. Use this server when you need:
+
+- hard filters — `allowed/excluded_x_handles`, `from_date` / `to_date`, domains
+- video understanding on X posts
+- per-call cost accounting, or plain pay-as-you-go with no subscription
 
 ## Differs from `wynandw87/claude-code-grok-mcp`
 
@@ -127,17 +147,25 @@ print(answer)
 - [x] `run_code` — Grok code interpreter
 - [x] `generate_image` — `grok-imagine` family with full param surface
 
-### v0.3 (current) — Tier A passthrough params
+### v0.3 — Tier A passthrough params
 - [x] `reasoning_effort` on `chat` (none / low / medium / high)
 - [x] cost surfacing — `cost_in_usd_ticks` on every call (footer + dict keys)
 - [x] `response_format` JSON Schema on `chat` (strict structured output)
 - [x] `max_turns` on `chat` / `search_x` / `search_web`
 - [x] `conv_id` prompt caching on `chat` / `search_x` / `search_web`
 
-### v0.3+ (planned)
-- [ ] Multi-turn chat with `session_id` (currently each `chat()` is single-turn)
-- [ ] `upload_file` + chat-with-files
-- [ ] `edit_image` / multi-image edit
+### v0.3.1 (current) — catch up with xAI API changes
+- [x] `reasoning_effort` values follow grok-4.5+: `low` / `medium` / `high` / `xhigh` (`none` now returns HTTP 400)
+- [x] `reasoning_effort` on `search_x` / `search_web`
+- [x] `generate_image`: `21:9` / `5:2` aspect ratios, `quality`
+
+### Dropped (2026-09-28)
+These were planned for v0.3+ and are no longer planned: in the author's
+usage every call goes to `search_x` / `search_web`, and xAI now covers each
+one natively.
+- Multi-turn chat — the Responses API chains turns with `previous_response_id` + `store: true` (kept 30 days)
+- `upload_file` + chat-with-files — `input_file` accepts a public `file_url` directly, or a Files API `file_id`
+- `edit_image` / multi-image edit — `POST /v1/images/edits`, up to 5 source images
 
 ### Out of scope (no plans)
 - TTS / STT — use OpenAI or ElevenLabs

@@ -2,7 +2,7 @@
 
 v0.3 ships 5 tools: chat / search_x / search_web / run_code / generate_image,
 with Tier A passthrough params (reasoning_effort / cost surfacing /
-response_format / max_turns / conv_id). See README roadmap for v0.3+ plans.
+response_format / max_turns / conv_id). See README roadmap.
 """
 
 from __future__ import annotations
@@ -44,9 +44,10 @@ def chat(
             else grok-4.7 (non-dated alias: follows new grok-4.7 snapshots,
             not newer generations). Other options at https://docs.x.ai/docs/models
         system_prompt: Optional developer/system role instructions.
-        reasoning_effort: none / low / medium / high. Omit for server
-            default (low). Use "none" for the cheapest/fastest answers
-            (zero reasoning tokens), "high" for hard problems.
+        reasoning_effort: low / medium / high / xhigh. Omit for the model
+            default (high on grok-4.5+; reasoning cannot be disabled). Use
+            "low" for the cheapest/fastest answers, "xhigh" (grok-4.6+) for
+            the hardest problems.
         response_format: A JSON Schema dict to force structured output.
             When set, the return value is the raw JSON string matching the
             schema (no cost footer is appended). xAI rule:
@@ -82,6 +83,7 @@ def search_x(
     enable_video_understanding: bool = False,
     max_turns: int | None = None,
     conv_id: str | None = None,
+    reasoning_effort: str | None = None,
     model: str = DEFAULT_MODEL,
 ) -> str:
     """Search X (Twitter) via Grok Live Search with full xAI parameter surface.
@@ -104,6 +106,9 @@ def search_x(
         max_turns: Cap on tool-using turns. Limits TURNS, not individual
             tool calls — one turn may fire multiple searches.
         conv_id: Prompt-cache key. Reuse across calls for cheaper repeats.
+        reasoning_effort: low / medium / high / xhigh. Omit for the model
+            default (high). "low" trims reasoning tokens; the per-post
+            X Search fee is unaffected.
         model: Grok model ID. Defaults to the GROK_DEFAULT_MODEL env var,
             else grok-4.7 (non-dated alias, same-model snapshots only).
 
@@ -120,6 +125,7 @@ def search_x(
         enable_video_understanding=enable_video_understanding,
         max_turns=max_turns,
         conv_id=conv_id,
+        reasoning_effort=reasoning_effort,
         model=model,
     )
 
@@ -133,6 +139,7 @@ def search_web(
     enable_image_search: bool = False,
     max_turns: int | None = None,
     conv_id: str | None = None,
+    reasoning_effort: str | None = None,
     model: str = DEFAULT_MODEL,
 ) -> str:
     """Search the web via Grok Live Search with full xAI parameter surface.
@@ -150,6 +157,9 @@ def search_web(
         max_turns: Cap on tool-using turns. Limits TURNS, not individual
             tool calls — one turn may fire multiple searches.
         conv_id: Prompt-cache key. Reuse across calls for cheaper repeats.
+        reasoning_effort: low / medium / high / xhigh. Omit for the model
+            default (high). "low" trims reasoning tokens; the per-call
+            Web Search fee is unaffected.
         model: Grok model ID. Defaults to the GROK_DEFAULT_MODEL env var,
             else grok-4.7 (non-dated alias, same-model snapshots only).
 
@@ -164,6 +174,7 @@ def search_web(
         enable_image_search=enable_image_search,
         max_turns=max_turns,
         conv_id=conv_id,
+        reasoning_effort=reasoning_effort,
         model=model,
     )
 
@@ -201,6 +212,7 @@ def generate_image(
     aspect_ratio: str | None = None,
     resolution: str | None = None,
     response_format: str | None = None,
+    quality: str | None = None,
 ) -> list[dict[str, Any]]:
     """Generate images from text via Grok Imagine.
 
@@ -213,9 +225,11 @@ def generate_image(
         model: Grok Imagine model. Default grok-imagine-image-2.0.
         n: Number of images (1-10, batch in one request).
         aspect_ratio: One of 1:1 / 16:9 / 9:16 / 4:3 / 3:4 / 3:2 / 2:3 /
-            2:1 / 1:2 / 19.5:9 / 9:19.5 / 20:9 / 9:20 / auto.
+            2:1 / 1:2 / 19.5:9 / 9:19.5 / 20:9 / 9:20 / 21:9 / 5:2 / auto.
         resolution: 1k or 2k.
         response_format: url (default, signed) or b64_json (embedded).
+        quality: low / medium / auto (grok-imagine-image-2.0 only). Omit for
+            auto, which currently serves low for generation.
 
     Returns:
         List of dicts each containing url (or b64_json), revised_prompt,
@@ -228,6 +242,7 @@ def generate_image(
         aspect_ratio=aspect_ratio,
         resolution=resolution,
         response_format=response_format,
+        quality=quality,
     )
 
 

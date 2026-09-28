@@ -63,9 +63,9 @@ def test_reasoning_effort_sets_nested_key() -> None:
     resp = _mock_response()
     ctx, client = _patched_client(resp)
     with ctx, patch.dict("os.environ", {"XAI_API_KEY": "FAKE"}):
-        call_responses("hi", reasoning_effort="none")
+        call_responses("hi", reasoning_effort="xhigh")
     payload = client.post.call_args.kwargs["json"]
-    assert payload["reasoning"] == {"effort": "none"}
+    assert payload["reasoning"] == {"effort": "xhigh"}
 
 
 def test_reasoning_effort_omitted_when_none() -> None:
@@ -85,8 +85,18 @@ def test_reasoning_effort_invalid_raises() -> None:
         call_responses("hi", reasoning_effort="extreme")
 
 
+def test_reasoning_effort_none_rejected() -> None:
+    """grok-4.5+ cannot disable reasoning: the API answers "none" with HTTP 400
+    (live-verified on grok-4.7, 2026-09-28), so reject it before the call."""
+    with (
+        patch.dict("os.environ", {"XAI_API_KEY": "FAKE"}),
+        pytest.raises(ValueError, match="reasoning_effort"),
+    ):
+        call_responses("hi", reasoning_effort="none")
+
+
 def test_reasoning_effort_all_valid_values() -> None:
-    for value in ("none", "low", "medium", "high"):
+    for value in ("low", "medium", "high", "xhigh"):
         resp = _mock_response()
         ctx, client = _patched_client(resp)
         with ctx, patch.dict("os.environ", {"XAI_API_KEY": "FAKE"}):

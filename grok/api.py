@@ -44,10 +44,12 @@ DEFAULT_MODEL = resolve_default_model()
 DEFAULT_IMAGE_MODEL = "grok-imagine-image-2.0"
 DEFAULT_TIMEOUT_S = 300.0
 
-# xAI Responses API accepts these reasoning effort levels (live-verified
-# 2026-05-29). Note: nested as payload["reasoning"]["effort"], NOT a
-# top-level "reasoning_effort" key (that's the Chat Completions shape).
-VALID_REASONING_EFFORTS = {"none", "low", "medium", "high"}
+# Reasoning effort levels for grok-4.5 and later (default "high"; reasoning
+# cannot be disabled — grok-4.7 answers "none" with HTTP 400, live-verified
+# 2026-09-28). "xhigh" needs grok-4.6+; grok-4.5 treats it as "high".
+# Note: nested as payload["reasoning"]["effort"], NOT a top-level
+# "reasoning_effort" key (that's the Chat Completions shape).
+VALID_REASONING_EFFORTS = {"low", "medium", "high", "xhigh"}
 
 # usage.cost_in_usd_ticks is an integer count of ticks; 1e10 ticks == $1.
 COST_TICKS_PER_USD = 1e10
@@ -92,13 +94,13 @@ def call_responses(
     (cost_ticks / 1e10, or None), and ``raw`` (the full JSON response for
     inspection / debugging).
 
-    Live Search tool specs go in `tools`. Citations are auto-enabled when any
-    tool of type ``web_search`` or ``x_search`` is present.
+    Live Search tool specs go in `tools`. The Responses API returns inline
+    citations and ``url_citation`` annotations by default — no flag needed.
 
     v0.3 params (all None-filtered — the payload key is only set when the
     param is provided, mirroring ``build_tool_spec`` discipline):
 
-    - ``reasoning_effort``: ``none`` / ``low`` / ``medium`` / ``high``.
+    - ``reasoning_effort``: ``low`` / ``medium`` / ``high`` / ``xhigh``.
       Sets ``payload["reasoning"] = {"effort": <value>}`` (nested — the
       top-level ``reasoning_effort`` key is the Chat-Completions shape and
       is WRONG for /v1/responses). Live-verified 2026-05-29.
@@ -129,9 +131,6 @@ def call_responses(
     }
     if tools:
         payload["tools"] = tools
-        search_types = {"web_search", "x_search"}
-        if any(t.get("type") in search_types for t in tools):
-            payload["inline_citations"] = True
     if reasoning_effort is not None:
         payload["reasoning"] = {"effort": reasoning_effort}
     if response_format_schema is not None:
@@ -213,6 +212,7 @@ def call_images_generations(
     aspect_ratio: str | None = None,
     resolution: str | None = None,
     response_format: str | None = None,
+    quality: str | None = None,
     timeout_s: float = DEFAULT_TIMEOUT_S,
 ) -> list[dict[str, Any]]:
     """POST to xAI Images Generations API and return the parsed image list.
@@ -238,6 +238,8 @@ def call_images_generations(
         payload["resolution"] = resolution
     if response_format is not None:
         payload["response_format"] = response_format
+    if quality is not None:
+        payload["quality"] = quality
 
     with httpx.Client(timeout=timeout_s) as client:
         resp = client.post(

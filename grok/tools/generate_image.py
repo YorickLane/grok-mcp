@@ -28,11 +28,15 @@ VALID_ASPECT_RATIOS = {
     "9:19.5",
     "20:9",
     "9:20",
+    "21:9",
+    "5:2",
     "auto",
 }
 
 VALID_RESOLUTIONS = {"1k", "2k"}
 VALID_RESPONSE_FORMATS = {"url", "b64_json"}
+# grok-imagine-image-2.0 only; it answers "high" with HTTP 400 (live 2026-09-28).
+VALID_QUALITIES = {"low", "medium", "auto"}
 
 
 def generate_image(
@@ -43,6 +47,7 @@ def generate_image(
     aspect_ratio: str | None = None,
     resolution: str | None = None,
     response_format: str | None = None,
+    quality: str | None = None,
 ) -> list[dict[str, Any]]:
     """Generate ``n`` images from ``prompt`` via Grok Imagine.
 
@@ -62,11 +67,15 @@ def generate_image(
         n: Number of images (batch). Clamped to 1-10.
         aspect_ratio: One of ``1:1`` / ``16:9`` / ``9:16`` / ``4:3`` /
             ``3:4`` / ``3:2`` / ``2:3`` / ``2:1`` / ``1:2`` / ``19.5:9`` /
-            ``9:19.5`` / ``20:9`` / ``9:20`` / ``auto``. Default unset
+            ``9:19.5`` / ``20:9`` / ``9:20`` / ``21:9`` / ``5:2`` /
+            ``auto``. Default unset
             (server picks).
         resolution: ``1k`` or ``2k``. Default unset.
         response_format: ``url`` (default, signed temporary) or
             ``b64_json`` (embedded base64, larger payload but no expiry).
+        quality: ``low`` / ``medium`` / ``auto`` (grok-imagine-image-2.0
+            only). Default unset = ``auto``, which currently serves ``low``
+            for generation. Billed at the quality actually served.
 
     Returns:
         List of image-result dicts (length == ``n``).
@@ -87,6 +96,8 @@ def generate_image(
         raise ValueError(
             f"response_format must be one of {sorted(VALID_RESPONSE_FORMATS)}"
         )
+    if quality is not None and quality not in VALID_QUALITIES:
+        raise ValueError(f"quality must be one of {sorted(VALID_QUALITIES)}")
 
     n = max(1, min(n, 10))
 
@@ -97,4 +108,5 @@ def generate_image(
         aspect_ratio=aspect_ratio,
         resolution=resolution,
         response_format=response_format,
+        quality=quality,
     )

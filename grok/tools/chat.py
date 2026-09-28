@@ -34,9 +34,10 @@ def chat(
             var, else ``grok-4.7`` (non-dated alias: follows new grok-4.7
             snapshots, not newer generations). Other options at https://docs.x.ai/docs/models
         system_prompt: Optional developer/system role instructions.
-        reasoning_effort: ``none`` / ``low`` / ``medium`` / ``high``. Omit
-            for the server default (``low``). ``none`` skips reasoning
-            tokens entirely (cheapest/fastest); ``high`` for hard problems.
+        reasoning_effort: ``low`` / ``medium`` / ``high`` / ``xhigh``. Omit
+            for the model default (``high`` on grok-4.5+; reasoning cannot
+            be disabled). ``low`` is cheapest/fastest; ``xhigh`` (grok-4.6+)
+            for the hardest problems.
         response_format: JSON Schema dict. When set, Grok returns a strict
             JSON object matching the schema and this function returns the
             raw JSON string (no cost footer is appended in this mode).

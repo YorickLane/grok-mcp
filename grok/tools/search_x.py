@@ -29,6 +29,7 @@ def search_x(
     enable_video_understanding: bool = False,
     max_turns: int | None = None,
     conv_id: str | None = None,
+    reasoning_effort: str | None = None,
     model: str = DEFAULT_MODEL,
 ) -> str:
     """Search X posts and return Grok's synthesized answer with citations.
@@ -53,6 +54,9 @@ def search_x(
             tool calls — a single turn may fire multiple searches.
         conv_id: Prompt-cache key — reuse across calls to hit cached input
             tokens (sets both the cache key and the conversation header).
+        reasoning_effort: ``low`` / ``medium`` / ``high`` / ``xhigh``. Omit
+            for the model default (``high`` on grok-4.5+). ``low`` trims
+            reasoning tokens; the per-post X Search fee is unaffected.
         model: Grok model ID. Defaults to the ``GROK_DEFAULT_MODEL`` env
             var, else ``grok-4.7`` (non-dated alias, same-model snapshots only).
 
@@ -88,6 +92,7 @@ def search_x(
         tools=[tool_spec],
         max_turns=max_turns,
         conv_id=conv_id,
+        reasoning_effort=reasoning_effort,
     )
     return (
         result["text"]
