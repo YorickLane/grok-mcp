@@ -238,10 +238,9 @@ def call_images_generations(
 ) -> list[dict[str, Any]]:
     """POST to xAI Images Generations API and return the parsed image list.
 
-    Returns a list of dicts with keys: ``url`` (signed temporary URL),
-    ``b64_json`` (only if ``response_format='b64_json'``), and
-    ``revised_prompt`` (model's interpreted prompt — useful for debugging
-    why an output diverged from intent).
+    Returns xAI's ``data`` items as-is: ``url`` (signed temporary URL),
+    ``b64_json`` (only if ``response_format='b64_json'``) and ``mime_type``.
+    There is no ``revised_prompt``, unlike OpenAI's endpoint.
 
     Note this is the OpenAI-compat ``/v1/images/generations`` endpoint, not
     the Responses API. Different request shape, different response shape.

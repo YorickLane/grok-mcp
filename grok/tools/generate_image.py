@@ -55,8 +55,7 @@ def generate_image(
     Returns a list of dicts. Each dict has:
       - ``url``: signed temporary URL (default; download / process promptly).
       - ``b64_json``: present only if ``response_format='b64_json'``.
-      - ``revised_prompt``: Grok's interpreted prompt — diagnostic value
-        when the output drifts from intent.
+      - ``mime_type``: e.g. ``image/jpeg``.
       - ``cost_ticks`` / ``cost_usd``: the per-REQUEST cost (whole request,
         not per-image) repeated on each dict for convenience. ``None`` if
         the API omitted a usage block.

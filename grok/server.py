@@ -267,7 +267,7 @@ def generate_image(
             auto, which currently serves low for generation.
 
     Returns:
-        List of dicts each containing url (or b64_json), revised_prompt,
+        List of dicts each containing url (or b64_json), mime_type,
         and cost_ticks / cost_usd (the per-request cost, repeated on each).
     """
     return _generate_image(
