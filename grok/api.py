@@ -119,6 +119,8 @@ def call_responses(
             f"reasoning_effort must be one of {sorted(VALID_REASONING_EFFORTS)}, "
             f"got {reasoning_effort!r}"
         )
+    if conv_id is not None and not conv_id.isascii():
+        raise ValueError("conv_id must be ASCII: it is sent as the x-grok-conv-id header")
 
     input_items: list[dict[str, Any]] = []
     if system_prompt:
@@ -160,8 +162,12 @@ def call_responses(
 
     if resp.status_code >= 400:
         raise GrokAPIError(resp.status_code, resp.text)
+    try:
+        body = resp.json()
+    except ValueError:
+        raise GrokAPIError(resp.status_code, resp.text) from None
 
-    return _parse_envelope(resp.json())
+    return _parse_envelope(body)
 
 
 def _cost_from_usage(usage: dict[str, Any] | None) -> tuple[int | None, float | None]:
@@ -268,8 +274,10 @@ def call_images_generations(
 
     if resp.status_code >= 400:
         raise GrokAPIError(resp.status_code, resp.text)
-
-    body = resp.json()
+    try:
+        body = resp.json()
+    except ValueError:
+        raise GrokAPIError(resp.status_code, resp.text) from None
     images = list(body.get("data", []))
     # Surface per-request cost on each image dict. cost_in_usd_ticks is for
     # the whole request, not per-image — documented as such in the tool

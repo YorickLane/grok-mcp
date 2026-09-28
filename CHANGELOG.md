@@ -4,6 +4,23 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.5.1] — 2026-09-29
+
+### Fixed
+- A 2xx xAI response whose body is not JSON (a proxy's HTML page, an empty
+  body) now raises `GrokAPIError`, so the model reads `xAI API 200: <body>`
+  instead of `Expecting value: line 1 column 1 (char 0)`.
+- A non-ASCII `conv_id` now fails before the request with `conv_id must be
+  ASCII: it is sent as the x-grok-conv-id header`, instead of httpx's
+  `'ascii' codec can't encode characters ...`.
+- 0.5.0 entry: the error-text masking started in mcp 2.1, not 2.0 (2.0.0 and
+  2.0.1 still pass the exception text through).
+
+### Changed
+- Dependency `mcp>=2.2,<2.3` (was `<3`). The masking of tool exception text
+  arrived in a minor release (2.1, python-sdk PR #3314), so a new minor can
+  change what the model sees. Raise the cap only after re-checking.
+
 ## [0.5.0] — 2026-09-29
 
 ### Changed
@@ -12,7 +29,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
   `MCPServer`. The text tools still declare no `outputSchema` and send no
   `structuredContent` — verified over stdio and in Claude Code, where the
   model receives the plain text.
-- Tool errors: mcp 2.x hands the model only `Error executing tool <name>` for
+- Tool errors: mcp >= 2.1 hands the model only `Error executing tool <name>` for
   any exception other than `ToolError`. Bad arguments (`ValueError`), xAI API
   errors (`GrokAPIError`, including a missing `XAI_API_KEY`) and network
   failures (`httpx.HTTPError`) are re-raised as `ToolError`, so the model

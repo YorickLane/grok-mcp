@@ -30,7 +30,7 @@ mcp = MCPServer("grok")
 def _report_errors(fn: Callable[P, R]) -> Callable[P, R]:
     """Re-raise expected failures as ToolError so their message reaches the model.
 
-    mcp 2.x shows the model only "Error executing tool <name>" for any other
+    mcp >= 2.1 shows the model only "Error executing tool <name>" for any other
     exception. Bad arguments, xAI API errors and network failures are expected,
     and their text says what to fix or retry.
     """

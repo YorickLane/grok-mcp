@@ -67,7 +67,7 @@ def test_text_tool_result_is_plain_text() -> None:
     assert result.content[0].text.startswith("line 1\nline 2")
 
 
-# mcp 2.x hands the model only "Error executing tool <name>" for any exception
+# mcp >= 2.1 hands the model only "Error executing tool <name>" for any exception
 # other than ToolError; these failures must keep their message.
 
 

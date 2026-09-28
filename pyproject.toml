@@ -1,6 +1,6 @@
 [project]
 name = "grok-mcp"
-version = "0.5.0"
+version = "0.5.1"
 description = "Lean MCP server for xAI Grok — full Live Search capability surface, modular architecture, explicit roadmap"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -16,7 +16,9 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "mcp>=2.2,<3",
+    # Capped at the tested minor: tool exception text masking arrived in minor
+    # 2.1 (python-sdk PR #3314). Bump the cap only after re-checking behavior.
+    "mcp>=2.2,<2.3",
     "httpx[socks]>=0.27.0",
 ]
 

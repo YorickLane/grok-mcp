@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 [![MCP](https://img.shields.io/badge/MCP-stdio-green.svg)](https://modelcontextprotocol.io/)
-[![Status](https://img.shields.io/badge/status-v0.5.0%20early-orange.svg)](#roadmap)
+[![Status](https://img.shields.io/badge/status-v0.5.1%20early-orange.svg)](#roadmap)
 
 ## Why this exists
 
@@ -185,7 +185,7 @@ print(answer)
 - [x] `generate_image` `resolution="1.5k"`
 
 ### v0.5 (current) — MCP Python SDK 2.x
-- [x] `mcp>=2.2,<3` (`MCPServer`); tool errors still reach the model as text
+- [x] `mcp>=2.2,<2.3` (`MCPServer`); tool errors still reach the model as text
 - [x] `grok-mcp` console script works from the wheel (`uvx --from git+…`)
 
 ### v0.3.1 — catch up with xAI API changes
