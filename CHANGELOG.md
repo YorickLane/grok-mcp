@@ -4,6 +4,32 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-09-28
+
+### Added
+- Search trace on `search_x` / `search_web`: a line after the cost footer
+  lists the server-side searches that ran and, for X Search, how many posts
+  and profiles were fetched (`_searches: x_keyword_search, x_user_search ·
+  4 posts, 0 profiles fetched_`). When X Search fetched nothing it adds
+  `⚠ X Search fetched 0 posts — this answer is not based on any X post`.
+  Live case that motivated it: 13 searches on a handle with no posts, and
+  the model still answered "xAI has not announced anything about Grok 4.7".
+  Counts come from the documented `usage.server_side_tool_usage_details`;
+  sub-tool names come from `custom_tool_call` output items, which xAI does
+  not document (observed live), so names may change while counts stay.
+- `resolution="1.5k"` on `generate_image` (in the OpenAPI enum, not the docs
+  prose; served live at $0.05/image).
+
+### Changed
+- `chat` / `search_x` / `search_web` / `run_code` no longer declare an MCP
+  `outputSchema`. With one, FastMCP also sent `{"result": "<text>"}` as
+  `structuredContent`, and Claude Code showed the model that JSON string
+  (escaped newlines) instead of the markdown text. `generate_image` keeps
+  structured output.
+- Dependency floor `mcp>=1.28,<2`, as the SDK's v2 release notes advise for
+  staying on the maintained 1.x line.
+- CI checks `ruff format`.
+
 ## [0.3.1] — 2026-09-28
 
 Catch-up with xAI API changes since 0.3.0. Payload shapes live-verified

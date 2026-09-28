@@ -33,7 +33,8 @@ VALID_ASPECT_RATIOS = {
     "auto",
 }
 
-VALID_RESOLUTIONS = {"1k", "2k"}
+# 1.5k is in the OpenAPI enum but not the docs prose; served live 2026-09-28.
+VALID_RESOLUTIONS = {"1k", "1.5k", "2k"}
 VALID_RESPONSE_FORMATS = {"url", "b64_json"}
 # grok-imagine-image-2.0 only; it answers "high" with HTTP 400 (live 2026-09-28).
 VALID_QUALITIES = {"low", "medium", "auto"}
@@ -70,7 +71,7 @@ def generate_image(
             ``9:19.5`` / ``20:9`` / ``9:20`` / ``21:9`` / ``5:2`` /
             ``auto``. Default unset
             (server picks).
-        resolution: ``1k`` or ``2k``. Default unset.
+        resolution: ``1k`` / ``1.5k`` / ``2k``. Default unset (``1k``).
         response_format: ``url`` (default, signed temporary) or
             ``b64_json`` (embedded base64, larger payload but no expiry).
         quality: ``low`` / ``medium`` / ``auto`` (grok-imagine-image-2.0

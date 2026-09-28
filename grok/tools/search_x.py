@@ -15,6 +15,7 @@ from grok.api import (
     call_responses,
     format_citations_md,
     format_cost_footer,
+    format_search_trace,
 )
 
 
@@ -63,6 +64,7 @@ def search_x(
     Returns:
         Answer text followed by a markdown ``**Sources:**`` block and a
         trailing cost footer. Empty citations block if nothing was found.
+        Then a search-trace line (see ``format_search_trace``).
 
     Raises:
         ValueError: If ``allowed_x_handles`` and ``excluded_x_handles`` both
@@ -96,4 +98,5 @@ def search_x(
         result["text"]
         + format_citations_md(result["citations"])
         + format_cost_footer(result["cost_usd"], model)
+        + format_search_trace(result["tool_calls"], result["tool_usage"])
     )

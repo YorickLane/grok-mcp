@@ -10,6 +10,7 @@ without server restart works.
 from __future__ import annotations
 
 import os
+from collections import Counter
 from typing import Any
 
 import httpx
@@ -194,12 +195,26 @@ def _parse_envelope(body: dict[str, Any]) -> dict[str, Any]:
                         }
                     )
 
-    cost_ticks, cost_usd = _cost_from_usage(body.get("usage"))
+    # Server-side tool calls: x_search sub-tools arrive as custom_tool_call
+    # items named x_keyword_search / x_user_search / view_x_video / ...;
+    # web_search arrives as web_search_call items (live shapes, 2026-09-28).
+    tool_calls: list[str] = []
+    for item in body.get("output", []):
+        item_type = item.get("type", "")
+        if item_type == "custom_tool_call":
+            tool_calls.append(item.get("name") or item_type)
+        elif item_type.endswith("_call"):
+            tool_calls.append(item_type.removesuffix("_call"))
+
+    usage = body.get("usage") or {}
+    cost_ticks, cost_usd = _cost_from_usage(usage)
     return {
         "text": "\n".join(text_parts),
         "citations": citations,
         "cost_ticks": cost_ticks,
         "cost_usd": cost_usd,
+        "tool_calls": tool_calls,
+        "tool_usage": usage.get("server_side_tool_usage_details") or {},
         "raw": body,
     }
 
@@ -289,6 +304,27 @@ def format_cost_footer(cost_usd: float | None, model: str) -> str:
     if cost_usd is None:
         return ""
     return f"\n\n—\n_grok cost: ${cost_usd:.6f} · {model}_"
+
+
+def format_search_trace(tool_calls: list[str], tool_usage: dict[str, int]) -> str:
+    """Render which server-side searches ran and what X Search fetched, or
+    empty string when no tool ran. Appended after the cost footer.
+
+    Adds a warning when X Search ran but fetched no posts and no profiles:
+    the model then answers from nothing (live case 2026-09-28: 13 searches
+    on a handle with no posts, answered confidently).
+    """
+    if not tool_calls:
+        return ""
+    parts = [f"{name} ×{n}" if n > 1 else name for name, n in Counter(tool_calls).items()]
+    line = "_searches: " + ", ".join(parts)
+    if tool_usage.get("x_search_calls"):
+        posts = tool_usage.get("x_posts_fetched", 0)
+        users = tool_usage.get("x_users_fetched", 0)
+        line += f" · {posts} posts, {users} profiles fetched"
+        if not posts and not users:
+            line += "_\n_⚠ X Search fetched 0 posts — this answer is not based on any X post"
+    return f"\n{line}_"
 
 
 def format_citations_md(citations: list[dict[str, str]]) -> str:

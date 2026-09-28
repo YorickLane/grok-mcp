@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 [![MCP](https://img.shields.io/badge/MCP-stdio-green.svg)](https://modelcontextprotocol.io/)
-[![Status](https://img.shields.io/badge/status-v0.3.1%20early-orange.svg)](#roadmap)
+[![Status](https://img.shields.io/badge/status-v0.4.0%20early-orange.svg)](#roadmap)
 
 ## Why this exists
 
@@ -26,7 +26,7 @@ parameters xAI shipped weeks ago. Concrete example:
 
 This server's design rule: **if the xAI API exposes it, the MCP exposes it.**
 
-## What it ships (v0.3.1)
+## What it ships (v0.4)
 
 5 tools wired with the full xAI parameter surface as of 2026-09-28:
 
@@ -36,17 +36,26 @@ This server's design rule: **if the xAI API exposes it, the MCP exposes it.**
 | `search_x` | X (Twitter) Live Search | `allowed/excluded_x_handles` (cap 20), date range, **`enable_image_understanding`**, **`enable_video_understanding`**, `reasoning_effort`, `max_turns`, `conv_id` |
 | `search_web` | Web Live Search | `allowed/excluded_domains` (cap 5), **`enable_image_understanding`**, **`enable_image_search`** (markdown embed), `reasoning_effort`, `max_turns`, `conv_id` |
 | `run_code` | Grok code interpreter — math / stats / simulations | `model` |
-| `generate_image` | Grok Imagine text-to-image | `model`, `n`, `aspect_ratio` (15), `resolution` (1k/2k), `quality` (low/medium/auto), `response_format` (url/b64) |
+| `generate_image` | Grok Imagine text-to-image | `model`, `n`, `aspect_ratio` (15), `resolution` (1k/1.5k/2k), `quality` (low/medium/auto), `response_format` (url/b64) |
 
 The bolded params are the ones most community servers omit.
 
-### Cost transparency (v0.3)
+### Cost and search transparency
 
 Every call surfaces its actual cost. xAI returns `usage.cost_in_usd_ticks`
 (1e10 ticks = $1) on every response. Text tools append a footer
-(`_grok cost: $0.001234 · grok-4.5_`); `generate_image` adds `cost_ticks` /
+(`_grok cost: $0.001234 · grok-4.7_`); `generate_image` adds `cost_ticks` /
 `cost_usd` to each returned dict. The footer is suppressed in `chat` json mode
 (`response_format` set) so the returned JSON stays valid.
+
+`search_x` / `search_web` add a trace line showing which searches ran and
+what X Search fetched, and warn when an answer rests on zero posts:
+
+```
+_grok cost: $0.033496 · grok-4.7_
+_searches: x_keyword_search ×6, x_semantic_search ×3, x_user_search · 0 posts, 0 profiles fetched_
+_⚠ X Search fetched 0 posts — this answer is not based on any X post_
+```
 
 **X Search is billed per item fetched** (since 2026-09-21: $5 / 1k posts,
 $10 / 1k user profiles, on top of tokens), so the cost of one `search_x` call
@@ -70,17 +79,21 @@ guarantees. Use this server when you need:
 
 ## Differs from `wynandw87/claude-code-grok-mcp`
 
-| | this | wynandw87 (v3.6.0, 2026-05-16) |
+| | this | wynandw87 (v3.9.2, 2026-07-21) |
 |---|---|---|
 | Live Search media | image + video understanding wired | not exposed |
-| Handle cap | 20 (matches xAI cap) | 10 (hardcoded) |
+| Handle cap | 20 (xAI's enforced cap, live-verified) | 10 (hardcoded) |
 | `enable_image_search` markdown embed | yes | not exposed |
-| Architecture | modular `grok/tools/` (one tool per file) | monolithic ~1700-line server.py |
-| Tests | pytest, no live HTTP needed | none visible |
-| Roadmap | explicit (see below) | none documented |
-| Scope | search + chat first, growing | full surface incl. TTS / STT / video gen |
+| `reasoning_effort` | `chat`, `search_x`, `search_web` | not exposed |
+| Architecture | modular `grok/tools/` (one tool per file) | monolithic ~2,700-line server.py |
+| Tests | pytest, mocked HTTP | pytest (`test_server.py`), mocked HTTP |
+| Scope | X / web search first; chat, code, image as extras | 18 tools incl. sessions, files, image / video gen + edit, TTS / STT |
 
-Both MIT. This is a clean reimplementation, not a fork.
+Both MIT. This is a clean reimplementation, not a fork. Other Grok MCP
+servers worth knowing (as of 2026-09): [LKbaba/Grok-mcp](https://github.com/LKbaba/Grok-mcp)
+(most-starred; agentic search + multi-agent brainstorm) and
+[merterbak/Grok-MCP](https://github.com/merterbak/Grok-MCP) (widest surface:
+Files API, stateful chat, live model pricing).
 
 ## Quick start
 
@@ -154,7 +167,12 @@ print(answer)
 - [x] `max_turns` on `chat` / `search_x` / `search_web`
 - [x] `conv_id` prompt caching on `chat` / `search_x` / `search_web`
 
-### v0.3.1 (current) — catch up with xAI API changes
+### v0.4 (current) — search trace
+- [x] `search_x` / `search_web` report which searches ran and what X Search fetched, with a warning when it fetched nothing
+- [x] text tools return plain markdown (no `structuredContent` JSON wrapper)
+- [x] `generate_image` `resolution="1.5k"`
+
+### v0.3.1 — catch up with xAI API changes
 - [x] `reasoning_effort` values follow grok-4.5+: `low` / `medium` / `high` / `xhigh` (`none` now returns HTTP 400)
 - [x] `reasoning_effort` on `search_x` / `search_web`
 - [x] `generate_image`: `21:9` / `5:2` aspect ratios, `quality`

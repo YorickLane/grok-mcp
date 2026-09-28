@@ -104,3 +104,14 @@ def test_mcp_layer_exposes_every_library_param() -> None:
         lib = set(inspect.signature(getattr(module, name)).parameters)
         mcp = set(inspect.signature(getattr(server, name)).parameters)
         assert lib == mcp, f"{name}: library-only {lib - mcp}, MCP-only {mcp - lib}"
+
+
+def test_resolution_1_5k_accepted() -> None:
+    """In the OpenAPI enum though the docs prose lists only 1k/2k; the API
+    served it (HTTP 200, $0.05/image) on 2026-09-28."""
+    from grok.tools.generate_image import generate_image
+
+    with patch("grok.tools.generate_image.call_images_generations") as mock_call:
+        mock_call.return_value = []
+        generate_image("test", resolution="1.5k")
+    assert mock_call.call_args.kwargs["resolution"] == "1.5k"

@@ -14,6 +14,7 @@ from grok.api import (
     call_responses,
     format_citations_md,
     format_cost_footer,
+    format_search_trace,
 )
 
 
@@ -55,6 +56,7 @@ def search_web(
     Returns:
         Answer text followed by a markdown ``**Sources:**`` block and a
         trailing cost footer.
+        Then a search-trace line (see ``format_search_trace``).
 
     Raises:
         ValueError: If ``allowed_domains`` and ``excluded_domains`` both set,
@@ -86,4 +88,5 @@ def search_web(
         result["text"]
         + format_citations_md(result["citations"])
         + format_cost_footer(result["cost_usd"], model)
+        + format_search_trace(result["tool_calls"], result["tool_usage"])
     )

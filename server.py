@@ -21,8 +21,12 @@ from grok.tools.search_x import search_x as _search_x
 
 mcp = FastMCP("grok")
 
+# Text tools opt out of structured output: with an outputSchema FastMCP also
+# sends {"result": "<text>"} as structuredContent, and Claude Code shows the
+# model that JSON string (escaped newlines) instead of the markdown text.
 
-@mcp.tool()
+
+@mcp.tool(structured_output=False)
 def chat(
     prompt: str,
     model: str = DEFAULT_MODEL,
@@ -72,7 +76,7 @@ def chat(
     )
 
 
-@mcp.tool()
+@mcp.tool(structured_output=False)
 def search_x(
     query: str,
     allowed_x_handles: list[str] | None = None,
@@ -113,7 +117,8 @@ def search_x(
             else grok-4.7 (non-dated alias, same-model snapshots only).
 
     Returns:
-        Answer text + markdown **Sources:** block + trailing cost footer.
+        Answer text + markdown **Sources:** block + trailing cost footer +
+        a trace line of the searches that ran (warns if X Search fetched 0 posts).
     """
     return _search_x(
         query=query,
@@ -130,7 +135,7 @@ def search_x(
     )
 
 
-@mcp.tool()
+@mcp.tool(structured_output=False)
 def search_web(
     query: str,
     allowed_domains: list[str] | None = None,
@@ -164,7 +169,8 @@ def search_web(
             else grok-4.7 (non-dated alias, same-model snapshots only).
 
     Returns:
-        Answer text + markdown **Sources:** block + trailing cost footer.
+        Answer text + markdown **Sources:** block + trailing cost footer +
+        a trace line of the searches that ran (warns if X Search fetched 0 posts).
     """
     return _search_web(
         query=query,
@@ -179,7 +185,7 @@ def search_web(
     )
 
 
-@mcp.tool()
+@mcp.tool(structured_output=False)
 def run_code(
     prompt: str,
     model: str = DEFAULT_MODEL,
@@ -226,7 +232,7 @@ def generate_image(
         n: Number of images (1-10, batch in one request).
         aspect_ratio: One of 1:1 / 16:9 / 9:16 / 4:3 / 3:4 / 3:2 / 2:3 /
             2:1 / 1:2 / 19.5:9 / 9:19.5 / 20:9 / 9:20 / 21:9 / 5:2 / auto.
-        resolution: 1k or 2k.
+        resolution: 1k / 1.5k / 2k (default 1k).
         response_format: url (default, signed) or b64_json (embedded).
         quality: low / medium / auto (grok-imagine-image-2.0 only). Omit for
             auto, which currently serves low for generation.
