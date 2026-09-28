@@ -1,8 +1,6 @@
-"""grok-mcp MCP server.
+"""grok-mcp MCP server: chat / search_x / search_web / run_code / generate_image.
 
-v0.3 ships 5 tools: chat / search_x / search_web / run_code / generate_image,
-with Tier A passthrough params (reasoning_effort / cost surfacing /
-response_format / max_turns / conv_id). See README roadmap.
+See README for the parameter surface and roadmap.
 """
 
 from __future__ import annotations

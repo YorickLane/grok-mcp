@@ -85,3 +85,14 @@ def test_network_error_reaches_the_model() -> None:
     client.post.side_effect = httpx.ReadTimeout("timed out")
     with ctx, patch.dict("os.environ", {"XAI_API_KEY": "FAKE"}):
         assert "timed out" in _error_text("search_web", {"query": "q"})
+
+
+def test_package_version_matches_pyproject() -> None:
+    """grok.__version__ sat at 0.3.0 through the 0.3.1 and 0.4.0 releases."""
+    import tomllib
+    from pathlib import Path
+
+    import grok
+
+    pyproject = tomllib.loads((Path(__file__).parents[1] / "pyproject.toml").read_text())
+    assert grok.__version__ == pyproject["project"]["version"]
