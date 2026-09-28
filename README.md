@@ -68,14 +68,18 @@ part (grok-4.5+ default to `high`).
 ## Do you need this?
 
 If you have a SuperGrok subscription, the [Grok Build CLI](https://docs.x.ai/build/overview)
-already searches X and the web on your plan instead of per-call API billing:
-`grok -p "..." --tools x_search,web_search`. Its model picks the search
-arguments itself, so account and date limits are requests in the prompt, not
-guarantees. Use this server when you need:
+searches X and the web on your plan instead of per-call API billing:
+`grok -p "..." --tools x_search,web_search`. In a 2026-09-28 test it kept to
+the requested account and date window in all 146 posts it returned (3
+accounts), but that is the model following the prompt, not a filter the API
+enforces. It can also describe X videos, but only by downloading and
+processing the files locally, which needs `--always-approve`.
 
-- hard filters — `allowed/excluded_x_handles`, `from_date` / `to_date`, domains
-- video understanding on X posts
-- per-call cost accounting, or plain pay-as-you-go with no subscription
+Use this server when you need:
+
+- filters the API enforces — `allowed/excluded_x_handles`, `from_date` / `to_date`, domains
+- video understanding done server-side (`enable_video_understanding`), without giving a local agent shell access
+- per-call cost and a search trace, or plain pay-as-you-go with no subscription
 
 ## Differs from `wynandw87/claude-code-grok-mcp`
 
