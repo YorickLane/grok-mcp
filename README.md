@@ -1,7 +1,7 @@
 # grok-mcp
 
 > **Lean MCP server for xAI Grok.** Full Live Search parameter surface
-> (including video understanding most community servers omit), modular
+> (including image and video understanding), modular
 > architecture, explicit roadmap, MIT licensed.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -26,7 +26,7 @@ parameters xAI shipped weeks ago. Concrete example:
 
 This server's design rule: **if the xAI API exposes it, the MCP exposes it.**
 
-## What it ships (v0.4)
+## What it ships
 
 5 tools wired with the full xAI parameter surface as of 2026-09-28:
 
@@ -38,7 +38,8 @@ This server's design rule: **if the xAI API exposes it, the MCP exposes it.**
 | `run_code` | Grok code interpreter — math / stats / simulations | `model` |
 | `generate_image` | Grok Imagine text-to-image | `model`, `n`, `aspect_ratio` (15), `resolution` (1k/1.5k/2k), `quality` (low/medium/auto), `response_format` (url/b64) |
 
-The bolded params are the ones most community servers omit.
+Bold marks the advanced params; the comparison below shows which ones
+another community server leaves out.
 
 ### Cost and search transparency
 
