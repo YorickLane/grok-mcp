@@ -1,8 +1,8 @@
 """Search X (Twitter) via Grok Live Search.
 
 Full xAI x_search parameter surface as of 2026-05-28 — including
-``enable_image_understanding`` and ``enable_video_understanding`` which many
-community Grok MCP servers omit. See README "vs alternatives" table.
+``enable_image_understanding`` and ``enable_video_understanding``. See the
+README section "Differs from wynandw87/claude-code-grok-mcp" for a comparison.
 
 API reference: https://docs.x.ai/docs/tools/x-search
 """
